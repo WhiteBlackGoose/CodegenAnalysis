@@ -24,36 +24,28 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.QuickJittedCodegenLessThan(20,
-            typeof(CodegenSizeQuickJit).GetMethod("SomeMethod"),
-            4, 5);
+        AssertCodegen.QuickJittedCodegenLessThan(20, () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test2()
     {
         Assert.Throws<ExpectedActualException<int>>(() =>
-            AssertCodegen.QuickJittedCodegenLessThan(10,
-                typeof(CodegenSizeQuickJit).GetMethod("SomeHeavyMethod"),
-                4, 5)
+            AssertCodegen.QuickJittedCodegenLessThan(10, () => SomeHeavyMethod(4, 5))
         );
     }
 
     [Fact]
     public void Test3()
     {
-        AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(
-            typeof(CodegenSizeQuickJit).GetMethod("SomeMethod"),
-            4, 5);
+        AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(() => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test4()
     {
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(
-                typeof(CodegenSizeQuickJit).GetMethod("SomeHeavyMethod"),
-                4, 5)
-            );
+            AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(() => SomeHeavyMethod(4, 5))
+        );
     }
 }

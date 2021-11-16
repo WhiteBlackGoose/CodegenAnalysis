@@ -11,7 +11,7 @@ internal static class CodegenInfoResolver
     private static CodegenInfo? GetByNameAndTier(string name, OptimizationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
-    public static CodegenInfo GetCodegenInfo(OptimizationTier tier, MethodInfo? mi, params object[] arguments)
+    public static CodegenInfo GetCodegenInfo(OptimizationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         System.ArgumentNullException.ThrowIfNull(mi);
         var key = $"{mi.DeclaringType?.FullName}.{mi.Name}";

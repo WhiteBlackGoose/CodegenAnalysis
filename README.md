@@ -16,11 +16,13 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.QuickJittedCodegenLessThan(
-            20, // expected size in bytes
-            typeof(CodegenSizeQuickJit).GetMethod("SomeMethod"),
-            4, 5 // arguments passed to the method for warm-up
-            );
+        AssertCodegen.QuickJittedCodegenLessThan(20, () => SomeMethod(4, 5));
+    }
+
+    [Fact]
+    public void Test2()
+    {
+        AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(() => SomeMethod(4, 5))
     }
 }
 ```
