@@ -4,7 +4,7 @@ Test library for verifying the expected characteristics of codegen.
 
 ## Examples
 
-### Naive tests
+### Codegen size
 
 ```cs
 using CodegenAssertions;
@@ -20,17 +20,11 @@ public class CodegenSizeQuickJit
     {
         AssertCodegen.CodegenLessThan(20, CompilationTier.Tier0, () => SomeMethod(4, 5));
     }
-
-    [Fact]
-    public void Test2()
-    {
-        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier0, () => SomeMethod(4, 5))
-    }
 }
 ```
 
 
-### Testing .NET 6's devirtualization
+### Having calls in the codegen
 
 ```cs
 public class Tests
@@ -45,6 +39,7 @@ public class Tests
         public override int H => 6;
     }
 
+    // this will get devirtualized at tier1, but not at tier0
     static int Twice(B b) => b.H * 2;
 
     [Fact]
@@ -59,4 +54,37 @@ public class Tests
         AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier1, () => Twice(new B()));
     }
 }
+```
+
+### Testing if we have branches
+
+```cs
+    private static readonly bool True = true;
+
+    static int SmartThing()
+    {
+        if (True)
+            return 5;
+        return 10;
+    }
+
+    [Fact]
+    public void BranchElimination()
+    {
+        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => SmartThing());
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    static int StupidThing()
+    {
+        if (True)
+            return 5;
+        return 10;
+    }
+
+    [Fact]
+    public void NoBranchElimination()
+    {
+        AssertCodegen.CodegenHasBranches(CompilationTier.Default, () => StupidThing());
+    }
 ```

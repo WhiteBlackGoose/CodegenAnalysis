@@ -81,7 +81,6 @@ public class CodegenSizeQuickJit
     {
         if (True)
             return 5;
-
         return 10;
     }
 
