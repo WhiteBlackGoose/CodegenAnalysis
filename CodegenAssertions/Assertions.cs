@@ -8,7 +8,11 @@ using Expr = System.Linq.Expressions.Expression<System.Action>;
 
 namespace CodegenAssertions;
 
-
+public enum CompilationTier
+{
+    Tier0,
+    Tier1
+}
 
 public static partial class AssertCodegen
 {
@@ -28,36 +32,55 @@ public static partial class AssertCodegen
         }
     }
 
-    public static void QuickJittedCodegenLessThan(int expectedLength, Expr func)
+    public static void CodegenLessThan(int expectedLength, CompilationTier tier, Expr func)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(func);
-        QuickJittedCodegenLessThan(expectedLength, mi, args);
+        CodegenLessThan(expectedLength, tier, mi, args);
     }
 
-    public static void QuickJittedCodegenLessThan(int expectedLength, MethodInfo? mi, params object?[] arguments)
+    public static void CodegenLessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(OptimizationTier.QuickJitted, mi, arguments);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier.ToInternalOT(), mi, arguments);
         AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "The method was expected to be smaller");
     }
 
-    public static void QuickJittedCodegenDoesNotHaveCalls(Expr expr)
+    public static void CodegenDoesNotHaveCalls(CompilationTier tier, Expr expr)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        QuickJittedCodegenDoesNotHaveCalls(mi, args);
+        CodegenDoesNotHaveCalls(tier, mi, args);
     }
 
-    public static void QuickJittedCodegenDoesNotHaveCalls(MethodInfo? mi, params object?[] arguments)
+    public static void CodegenDoesNotHaveCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        CodegenDoesNotHave(OptimizationTier.QuickJitted, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+        CodegenDoesNotHave(tier.ToInternalOT(), i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
     }
 
-
-    internal static void CodegenDoesNotHave(OptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+    internal static void CodegenDoesNotHave(InternalOptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         AssertFact(
             !ci
             .Instructions
             .Any(pred), ci, $"It was supposed not to contain {comment}");
+    }
+
+    public static void CodegenHasCalls(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        CodegenHasCalls(tier, mi, args);
+    }
+
+    public static void CodegenHasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    {
+        CodegenHas(tier.ToInternalOT(), i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+    }
+
+    internal static void CodegenHas(InternalOptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+    {
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
+        AssertFact(
+            ci
+            .Instructions
+            .Any(pred), ci, $"It was supposed to contain {comment}");
     }
 }

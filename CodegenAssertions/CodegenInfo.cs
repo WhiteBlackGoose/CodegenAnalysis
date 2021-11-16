@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace CodegenAssertions;
 
-internal record CodegenInfo(byte[] Bytes, nuint InstructionPointer, OptimizationTier Tier, Instruction[] Instructions)
+internal record CodegenInfo(byte[] Bytes, nuint InstructionPointer, InternalOptimizationTier Tier, Instruction[] Instructions)
 {
     public override unsafe string ToString()
     {
@@ -33,7 +33,18 @@ internal record CodegenInfo(byte[] Bytes, nuint InstructionPointer, Optimization
     const int HEXBYTES_COLUMN_BYTE_LENGTH = 10;
 }
 
-internal enum OptimizationTier : byte
+internal static class Tier
+{
+    internal static InternalOptimizationTier ToInternalOT(this CompilationTier tier)
+        => tier switch
+        {
+            CompilationTier.Tier0 => InternalOptimizationTier.QuickJitted,
+            CompilationTier.Tier1 => InternalOptimizationTier.OptimizedTier1,
+            _ => throw new("We forgot to add something")
+        };
+}
+
+internal enum InternalOptimizationTier : byte
 {
     Unknown = 0,
     MinOptJitted = 1,

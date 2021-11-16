@@ -24,28 +24,52 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.QuickJittedCodegenLessThan(20, () => SomeMethod(4, 5));
+        AssertCodegen.CodegenLessThan(20, CompilationTier.Tier0, () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test2()
     {
         Assert.Throws<ExpectedActualException<int>>(() =>
-            AssertCodegen.QuickJittedCodegenLessThan(10, () => SomeHeavyMethod(4, 5))
+            AssertCodegen.CodegenLessThan(10, CompilationTier.Tier0, () => SomeHeavyMethod(4, 5))
         );
     }
 
     [Fact]
     public void Test3()
     {
-        AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(() => SomeMethod(4, 5));
+        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier0 , () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test4()
     {
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(() => SomeHeavyMethod(4, 5))
+            AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier0, () => SomeHeavyMethod(4, 5))
         );
+    }
+
+    public class A
+    {
+        public virtual int H => 3;
+    }
+
+    public sealed class B : A
+    {
+        public override int H => 6;
+    }
+
+    static int Twice(B b) => b.H * 2;
+
+    [Fact]
+    public void NotDevirtTier0()
+    {
+        AssertCodegen.CodegenHasCalls(CompilationTier.Tier0, () => Twice(new B()));
+    }
+
+    [Fact]
+    public void DevirtTier1()
+    {
+        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier1, () => Twice(new B()));
     }
 }

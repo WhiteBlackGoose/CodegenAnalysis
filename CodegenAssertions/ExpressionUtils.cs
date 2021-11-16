@@ -5,9 +5,9 @@ using System.Reflection;
 
 namespace CodegenAssertions;
 
-internal static class ExpressionUtils
+public static class ExpressionUtils
 {
-    internal static (MethodInfo MethodInfo, object?[] Arguments) LambdaToMethodInfo(Expression<Action> expr)
+    public static (MethodInfo MethodInfo, object?[] Arguments) LambdaToMethodInfo(Expression<Action> expr)
     {
         if (expr.Body.NodeType != ExpressionType.Call)
             throw new ArgumentException("Expected a single call, for example, () => Function(5, 'a', 10)");
@@ -18,10 +18,16 @@ internal static class ExpressionUtils
         var args = new List<object?>(call.Arguments.Count);
         foreach (var arg in call.Arguments)
         {
-            if (arg.NodeType != ExpressionType.Constant)
-                throw new ArgumentException($"Expected a constant, got {arg} instead");
-            var c = (ConstantExpression)arg;
-            args.Add(c.Value);
+            if (arg.NodeType == ExpressionType.Constant)
+            {
+                var c = (ConstantExpression)arg;
+                args.Add(c.Value);
+            }
+            else
+            {
+                var evaluated = Expression.Lambda(arg).Compile().DynamicInvoke();
+                args.Add(evaluated);
+            }
         }
         return (mi, args.ToArray());
     }

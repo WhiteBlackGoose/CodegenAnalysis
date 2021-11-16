@@ -8,21 +8,21 @@ namespace CodegenAssertions;
 
 internal static class CodegenInfoResolver
 {
-    private static CodegenInfo? GetByNameAndTier(string name, OptimizationTier tier)
+    private static CodegenInfo? GetByNameAndTier(string name, InternalOptimizationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
-    public static CodegenInfo GetCodegenInfo(OptimizationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static CodegenInfo GetCodegenInfo(InternalOptimizationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         System.ArgumentNullException.ThrowIfNull(mi);
         var key = $"{mi.DeclaringType?.FullName}.{mi.Name}";
         if (GetByNameAndTier(key, tier) is { } res)
             return res;
-        if (tier is OptimizationTier.QuickJitted)
+        if (tier is InternalOptimizationTier.QuickJitted)
         {
             mi.Invoke(null, arguments);
             Thread.Sleep(100);
         }
-        else if (tier is OptimizationTier.OptimizedTier1)
+        else if (tier is InternalOptimizationTier.OptimizedTier1)
         {
             var sw = new Stopwatch();
             sw.Start();
