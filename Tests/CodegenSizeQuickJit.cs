@@ -1,4 +1,5 @@
 using CodegenAssertions;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace Tests;
@@ -24,28 +25,28 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.CodegenLessThan(20, CompilationTier.Tier0, () => SomeMethod(4, 5));
+        AssertCodegen.CodegenLessThan(20, CompilationTier.Default, () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test2()
     {
         Assert.Throws<ExpectedActualException<int>>(() =>
-            AssertCodegen.CodegenLessThan(10, CompilationTier.Tier0, () => SomeHeavyMethod(4, 5))
+            AssertCodegen.CodegenLessThan(10, CompilationTier.Default, () => SomeHeavyMethod(4, 5))
         );
     }
 
     [Fact]
     public void Test3()
     {
-        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier0 , () => SomeMethod(4, 5));
+        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Default , () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test4()
     {
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier0, () => SomeHeavyMethod(4, 5))
+            AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Default, () => SomeHeavyMethod(4, 5))
         );
     }
 
@@ -64,12 +65,44 @@ public class CodegenSizeQuickJit
     [Fact]
     public void NotDevirtTier0()
     {
-        AssertCodegen.CodegenHasCalls(CompilationTier.Tier0, () => Twice(new B()));
+        AssertCodegen.CodegenHasCalls(CompilationTier.Default, () => Twice(new B()));
     }
 
     [Fact]
     public void DevirtTier1()
     {
         AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier1, () => Twice(new B()));
+    }
+
+    private static readonly bool True = true;
+
+#pragma warning disable CS0162 // Unreachable code detected
+    static int SmartThing()
+    {
+        if (True)
+            return 5;
+
+        return 10;
+    }
+
+    [Fact]
+    public void BranchElimination()
+    {
+        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => SmartThing());
+    }
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
+    static int StupidThing()
+    {
+        if (True)
+            return 5;
+        return 10;
+    }
+#pragma warning restore CS0162 // Unreachable code detected
+
+    [Fact]
+    public void NoBranchElimination()
+    {
+        AssertCodegen.CodegenHasBranches(CompilationTier.Default, () => StupidThing());
     }
 }

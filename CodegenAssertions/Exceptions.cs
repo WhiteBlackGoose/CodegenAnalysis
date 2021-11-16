@@ -10,7 +10,7 @@ public class CodegenAssertionFailedException : Exception
 
 public sealed class RequestedTierNotFoundException : CodegenAssertionFailedException
 {
-    internal RequestedTierNotFoundException(InternalOptimizationTier tier)
+    internal RequestedTierNotFoundException(CompilationTier tier)
         : base($"Tier {tier} not found. Try toggling the build configuration.") { }
 }
 

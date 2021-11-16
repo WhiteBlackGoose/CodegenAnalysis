@@ -39,7 +39,7 @@ internal class EntryPointsListener : EventListener
                 {
                     byte[] codeBytes = new byte[size];
                     Unsafe.CopyBlock(ref codeBytes[0], ref *(byte*)start, size);
-                    return new CodegenInfo(codeBytes, (nuint)start, opt, Disassembler.BytesToInstruction(codeBytes, (nuint)start));
+                    return new CodegenInfo(codeBytes, (nuint)start, opt.ToPublicCT(), Disassembler.BytesToInstruction(codeBytes, (nuint)start));
                 });
 
             var key = $"{fullClassName}.{methodName}";

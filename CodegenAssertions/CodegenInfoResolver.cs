@@ -6,23 +6,29 @@ using System.Threading;
 
 namespace CodegenAssertions;
 
-internal static class CodegenInfoResolver
+public static class CodegenInfoResolver
 {
-    private static CodegenInfo? GetByNameAndTier(string name, InternalOptimizationTier tier)
+    private static CodegenInfo? GetByNameAndTier(string name, CompilationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
-    public static CodegenInfo GetCodegenInfo(InternalOptimizationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static CodegenInfo GetCodegenInfo(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        return GetCodegenInfo(tier, mi, args);
+    }
+
+    public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         System.ArgumentNullException.ThrowIfNull(mi);
         var key = $"{mi.DeclaringType?.FullName}.{mi.Name}";
         if (GetByNameAndTier(key, tier) is { } res)
             return res;
-        if (tier is InternalOptimizationTier.QuickJitted)
+        if (tier is CompilationTier.Default)
         {
             mi.Invoke(null, arguments);
             Thread.Sleep(100);
         }
-        else if (tier is InternalOptimizationTier.OptimizedTier1)
+        else if (tier is CompilationTier.Tier1)
         {
             var sw = new Stopwatch();
             sw.Start();

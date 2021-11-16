@@ -4,13 +4,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Xunit;
-using Expr = System.Linq.Expressions.Expression<System.Action>;
 
 namespace CodegenAssertions;
 
 public enum CompilationTier
 {
-    Tier0,
+    Default,
+    AO,
     Tier1
 }
 
@@ -37,25 +37,35 @@ public static partial class AssertCodegen
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(func);
         CodegenLessThan(expectedLength, tier, mi, args);
     }
-
     public static void CodegenLessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier.ToInternalOT(), mi, arguments);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "The method was expected to be smaller");
     }
+
 
     public static void CodegenDoesNotHaveCalls(CompilationTier tier, Expr expr)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
         CodegenDoesNotHaveCalls(tier, mi, args);
     }
-
     public static void CodegenDoesNotHaveCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        CodegenDoesNotHave(tier.ToInternalOT(), i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+        CodegenDoesNotHave(tier, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
     }
 
-    internal static void CodegenDoesNotHave(InternalOptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+
+    public static void CodegenDoesNotHaveBranches(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        CodegenDoesNotHaveBranches(tier, mi, args);
+    }
+    public static void CodegenDoesNotHaveBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    {
+        CodegenDoesNotHave(tier, i => i.Code.ToString().StartsWith("Cmp"), "cmps", mi, arguments);
+    }
+
+    internal static void CodegenDoesNotHave(CompilationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         AssertFact(
@@ -69,13 +79,24 @@ public static partial class AssertCodegen
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
         CodegenHasCalls(tier, mi, args);
     }
-
     public static void CodegenHasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        CodegenHas(tier.ToInternalOT(), i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+        CodegenHas(tier, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
     }
 
-    internal static void CodegenHas(InternalOptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+
+    public static void CodegenHasBranches(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        CodegenHasBranches(tier, mi, args);
+    }
+    public static void CodegenHasBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    {
+        CodegenHas(tier, i => i.Code.ToString().StartsWith("Cmp") || i.Code.ToString().StartsWith("Test"), "cmps", mi, arguments);
+    }
+
+
+    internal static void CodegenHas(CompilationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         AssertFact(
