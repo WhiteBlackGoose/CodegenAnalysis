@@ -10,7 +10,8 @@ public abstract class CodegenAssertionFailedException : Exception
 
 public sealed class RequestedTierNotFoundException : CodegenAssertionFailedException
 {
-    internal RequestedTierNotFoundException(OptimizationTier tier) : base($"Tier {tier} not found") { }
+    internal RequestedTierNotFoundException(OptimizationTier tier)
+        : base($"Tier {tier} not found. Try toggling the build configuration.") { }
 }
 
 public sealed class RequestedMethodNotCapturedForJittingException : CodegenAssertionFailedException
