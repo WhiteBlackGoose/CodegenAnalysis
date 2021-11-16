@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Iced.Intel;
+using System;
 using System.Linq;
 using System.Reflection;
 using Xunit;
@@ -7,12 +8,39 @@ namespace CodegenAssertions;
 
 public static partial class AssertCodegen
 {
-    public static void QuickJittedCodegenLessThan(int expectedLength, MethodInfo mi, params object[] arguments)
+    private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(mi, arguments);
-        var quickJit = ci.FirstOrDefault(c => c.Tier == OptimizationTier.QuickJitted) 
-                ?? throw new RequestedTierNotFoundException(OptimizationTier.QuickJitted);
-        if (quickJit.Bytes.Length > expectedLength)
-            throw new ExpectedActualException<int>(expectedLength, quickJit.Bytes.Length, $"The method is expected to be smaller. Codegen:\n{quickJit}");
+        if (!fact)
+        {
+            throw new ExpectedActualException<T>(expected, actual, $"{comment}\n\nCodegen:\n\n{ci}");
+        }
+    }
+
+    private static void AssertFact(bool fact, CodegenInfo ci, string comment)
+    {
+        if (!fact)
+        {
+            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci}");
+        }
+    }
+
+    public static void QuickJittedCodegenLessThan(int expectedLength, MethodInfo? mi, params object[] arguments)
+    {
+        var ci = CodegenInfoResolver.GetCodegenInfo(OptimizationTier.QuickJitted, mi, arguments);
+        AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "The method was expected to be smaller");
+    }
+
+    public static void QuickJittedCodegenDoesNotHaveCalls(MethodInfo? mi, params object[] arguments)
+    {
+        CodegenDoesNotHave(OptimizationTier.QuickJitted, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+    }
+
+    internal static void CodegenDoesNotHave(OptimizationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object[] arguments)
+    {
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
+        AssertFact(
+            !ci
+            .Instructions
+            .Any(pred), ci, $"It was supposed not to contain {comment}");
     }
 }

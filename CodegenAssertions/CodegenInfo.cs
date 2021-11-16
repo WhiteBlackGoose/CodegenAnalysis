@@ -3,26 +3,17 @@ using System.Collections.Generic;
 
 namespace CodegenAssertions;
 
-internal record CodegenInfo(byte[] Bytes, nuint InstructionPointer, OptimizationTier Tier)
+internal record CodegenInfo(byte[] Bytes, nuint InstructionPointer, OptimizationTier Tier, Instruction[] Instructions)
 {
     public override unsafe string ToString()
     {
-        var codeReader = new ByteArrayCodeReader(Bytes);
-        var decoder = Decoder.Create(sizeof(nint) * 8, codeReader);
-        decoder.IP = InstructionPointer;
-        ulong endRip = decoder.IP + (uint)Bytes.Length;
-
-        var instructions = new List<Instruction>();
-        while (decoder.IP < endRip)
-            instructions.Add(decoder.Decode());
-
         // adapted from https://github.com/icedland/iced/blob/master/src/csharp/Intel/README.md#disassemble-decode-and-format-instructions
         var sb = new System.Text.StringBuilder();
         var formatter = new NasmFormatter();
         formatter.Options.DigitSeparator = "`";
         formatter.Options.FirstOperandCharIndex = 10;
         var output = new StringOutput();
-        foreach (var instr in instructions)
+        foreach (var instr in Instructions)
         {
             formatter.Format(instr, output);
             sb.Append(instr.IP.ToString("X16")).Append(" ");

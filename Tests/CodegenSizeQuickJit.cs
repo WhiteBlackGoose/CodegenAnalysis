@@ -38,4 +38,22 @@ public class CodegenSizeQuickJit
                 4, 5)
         );
     }
+
+    [Fact]
+    public void Test3()
+    {
+        AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(
+            typeof(CodegenSizeQuickJit).GetMethod("SomeMethod"),
+            4, 5);
+    }
+
+    [Fact]
+    public void Test4()
+    {
+        Assert.Throws<CodegenAssertionFailedException>(() =>
+            AssertCodegen.QuickJittedCodegenDoesNotHaveCalls(
+                typeof(CodegenSizeQuickJit).GetMethod("SomeHeavyMethod"),
+                4, 5)
+            );
+    }
 }

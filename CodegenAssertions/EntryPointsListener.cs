@@ -8,7 +8,7 @@ namespace CodegenAssertions;
 internal class EntryPointsListener : EventListener
 {
     internal static readonly EntryPointsListener listener = new();
-    internal static readonly Dictionary<string, List<CodegenInfo>> Codegens = new();
+    internal static readonly Dictionary<string, List<Lazy<CodegenInfo>>> Codegens = new();
 
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
@@ -22,7 +22,9 @@ internal class EntryPointsListener : EventListener
     protected override unsafe void OnEventWritten(EventWrittenEventArgs eventData)
     {
         object GetPayload(string key)
-            => eventData.Payload[eventData.PayloadNames.IndexOf(key)];
+            => (eventData.Payload ?? throw new("Unexpected error"))
+              [(eventData.PayloadNames ?? throw new("Unexpected error")).IndexOf(key)]
+              ?? throw new("Unexpected error");
 
         if (eventData.EventName == "MethodLoadVerbose_V2")
         {
@@ -32,9 +34,14 @@ internal class EntryPointsListener : EventListener
             ulong start = (ulong)GetPayload("MethodStartAddress");
             uint size = (uint)GetPayload("MethodSize");
             OptimizationTier opt = (OptimizationTier)((flags >> 7) & 0b111);
-            byte[] codeBytes = new byte[size];
-            Unsafe.CopyBlock(ref codeBytes[0], ref *(byte*)start, size);
-            var res = new CodegenInfo(codeBytes, (nuint)start, opt);
+
+            var res = new Lazy<CodegenInfo>(() =>
+                {
+                    byte[] codeBytes = new byte[size];
+                    Unsafe.CopyBlock(ref codeBytes[0], ref *(byte*)start, size);
+                    return new CodegenInfo(codeBytes, (nuint)start, opt, Disassembler.BytesToInstruction(codeBytes, (nuint)start));
+                });
+
             var key = $"{fullClassName}.{methodName}";
             if (Codegens.TryGetValue(key, out var list))
                 list.Add(res);

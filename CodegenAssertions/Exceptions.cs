@@ -2,7 +2,7 @@
 
 namespace CodegenAssertions;
 
-public abstract class CodegenAssertionFailedException : Exception
+public class CodegenAssertionFailedException : Exception
 {
     internal CodegenAssertionFailedException() { }
     internal CodegenAssertionFailedException(string msg) : base(msg) { }
