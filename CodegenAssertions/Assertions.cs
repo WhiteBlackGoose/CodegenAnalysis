@@ -15,6 +15,9 @@ public enum CompilationTier
 
 public static partial class AssertCodegen
 {
+    private static readonly Func<Instruction, bool> isBranch = i => i.Code.ToString().StartsWith("Cmp") || i.Code.ToString().StartsWith("Test");
+    private static readonly Func<Instruction, bool> isCall = i => i.Code.ToString().StartsWith("Call");
+
     private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
     {
         if (!fact)
@@ -31,78 +34,101 @@ public static partial class AssertCodegen
         }
     }
 
-    public static void CodegenLessThan(int expectedLength, CompilationTier tier, Expr func)
+    public static void LessThan(int expectedLengthBytes, CompilationTier tier, Expr func)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(func);
-        CodegenLessThan(expectedLength, tier, mi, args);
+        LessThan(expectedLengthBytes, tier, mi, args);
     }
-    public static void CodegenLessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "The method was expected to be smaller");
     }
 
 
-    public static void CodegenDoesNotHaveCalls(CompilationTier tier, Expr expr)
+    public static void NoCalls(CompilationTier tier, Expr expr)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        CodegenDoesNotHaveCalls(tier, mi, args);
+        NoCalls(tier, mi, args);
     }
-    public static void CodegenDoesNotHaveCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void NoCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        CodegenDoesNotHave(tier, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
+        HasInRange(tier, null, 0, isCall, "calls", mi, arguments);
     }
 
 
-    public static void CodegenDoesNotHaveBranches(CompilationTier tier, Expr expr)
+    public static void NoBranches(CompilationTier tier, Expr expr)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        CodegenDoesNotHaveBranches(tier, mi, args);
+        NoBranches(tier, mi, args);
     }
-    public static void CodegenDoesNotHaveBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void NoBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        CodegenDoesNotHave(tier, i => i.Code.ToString().StartsWith("Cmp"), "cmps", mi, arguments);
+        HasInRange(tier, null, 0, isBranch, "cmps", mi, arguments);
     }
 
-    internal static void CodegenDoesNotHave(CompilationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+    public static void HasCalls(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasCalls(tier, mi, args);
+    }
+    public static void HasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    {
+        HasInRange(tier, 1, null, isCall, "calls", mi, arguments);
+    }
+
+
+    public static void HasBranches(CompilationTier tier, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasBranches(tier, mi, args);
+    }
+    public static void HasBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    {
+        HasInRange(tier, 1, null, isBranch, "branches", mi, arguments);
+    }
+
+
+    public static void HasBranchesAtLeast(int atLeast, CompilationTier tier, Expr expr)
+        => HasInRange(tier, atLeast, null, isBranch, "branches", expr);
+
+    public static void HasBranchesNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
+        => HasInRange(tier, null, upperLimit, isBranch, "branches", expr);
+
+    public static void HasCallsAtLeast(int atLeast, CompilationTier tier, Expr expr)
+        => HasInRange(tier, atLeast, null, isCall, "calls", expr);
+
+    public static void HasCallsNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
+        => HasInRange(tier, null, upperLimit, isCall, "calls", expr);
+
+
+    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<Instruction, bool> pred, string comment, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasInRange(tier, from, to, pred, comment, mi, args);
+    }
+
+    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
         var problematicLines = ci.Instructions
             .Select((i, index) => (Instruction: i, Index: index))
             .Where(p => pred(p.Instruction))
             .Select(p => p.Index);
+        var count = problematicLines.Count();
+        var message = $"It was supposed to contain ";
+
+        if (from is { } aFrom)
+            message += $"at least {aFrom}";
+        if (from is not null && to is not null)
+            message += " no more than ";
+        if (to is { } aTo)
+            message += aTo;
+        message += $" {comment}, got {count} instead";
+
         AssertFact(
-            !problematicLines.Any(), ci, problematicLines, $"It was supposed not to contain {comment}");
-    }
-
-    public static void CodegenHasCalls(CompilationTier tier, Expr expr)
-    {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        CodegenHasCalls(tier, mi, args);
-    }
-    public static void CodegenHasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
-    {
-        CodegenHas(tier, i => i.Code.ToString().StartsWith("Call"), "calls", mi, arguments);
-    }
-
-
-    public static void CodegenHasBranches(CompilationTier tier, Expr expr)
-    {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        CodegenHasBranches(tier, mi, args);
-    }
-    public static void CodegenHasBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
-    {
-        CodegenHas(tier, i => i.Code.ToString().StartsWith("Cmp") || i.Code.ToString().StartsWith("Test"), "cmps", mi, arguments);
-    }
-
-
-    internal static void CodegenHas(CompilationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
-    {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
-        AssertFact(
-            ci
-            .Instructions
-            .Any(pred), ci, null, $"It was supposed to contain {comment}");
+            (from is not { } nnFrom || count >= nnFrom)
+            && (to is not { } nnTo || count <= nnTo),
+            ci, problematicLines, message);
     }
 }

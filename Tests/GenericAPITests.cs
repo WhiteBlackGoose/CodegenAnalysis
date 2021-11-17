@@ -19,13 +19,13 @@ public class GenericAPITests
     [Fact]
     public void TestSize1()
     {
-        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => Add(3, 5));
+        AssertCodegen.NoBranches(CompilationTier.Tier1, () => Add(3, 5));
     }
 
     [Fact]
     public void TestSize2()
     {
-        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => Add(3.3f, 5.2f));
+        AssertCodegen.NoBranches(CompilationTier.Tier1, () => Add(3.3f, 5.2f));
     }
 
     private static class GenericDuck<T>
@@ -36,13 +36,13 @@ public class GenericAPITests
     [Fact]
     public void TestGenericTypeSize1()
     {
-        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => GenericDuck<int>.Add(3, 5));
+        AssertCodegen.NoBranches(CompilationTier.Tier1, () => GenericDuck<int>.Add(3, 5));
     }
 
     [Fact]
     public void TestGenericTypeSize2()
     {
-        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => GenericDuck<float>.Add(3.3f, 5.2f));
+        AssertCodegen.NoBranches(CompilationTier.Tier1, () => GenericDuck<float>.Add(3.3f, 5.2f));
     }
 }
 

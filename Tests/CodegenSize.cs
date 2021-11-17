@@ -25,14 +25,14 @@ public class CodegenSize
     [Fact]
     public void Test1()
     {
-        AssertCodegen.CodegenLessThan(20, CompilationTier.Tier1, () => SomeMethod(4, 5));
+        AssertCodegen.LessThan(20, CompilationTier.Tier1, () => SomeMethod(4, 5));
     }
 
     [Fact]
     public void Test2()
     {
         Assert.Throws<ExpectedActualException<int>>(() =>
-            AssertCodegen.CodegenLessThan(10, CompilationTier.Default, () => SomeHeavyMethod(4, 5))
+            AssertCodegen.LessThan(10, CompilationTier.Default, () => SomeHeavyMethod(4, 5))
         );
     }
 
