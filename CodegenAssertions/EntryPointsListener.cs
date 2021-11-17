@@ -11,6 +11,7 @@ internal class EntryPointsListener : EventListener
 {
     internal static readonly EntryPointsListener listener = new();
     internal static readonly Dictionary<MethodBase, List<Lazy<CodegenInfo>>> Codegens = new();
+    internal static readonly Dictionary<nuint, MethodBase> MethodByAddress = new();
 
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
@@ -56,6 +57,7 @@ internal class EntryPointsListener : EventListener
             if (mb is null)
                 return;
             var key = mb;
+            MethodByAddress[(nuint)start] = mb;
             if (Codegens.TryGetValue(key, out var list))
                 list.Add(res);
             else

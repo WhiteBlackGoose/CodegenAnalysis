@@ -7,6 +7,18 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Version>0.0.0-alpha</Version>
+    <Authors>WhiteBlackGoose</Authors>
+    <Copyright>© WhiteBlackGoose 2021</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>Test release.</PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAssertions</RepositoryUrl>
+    <PackageTags>performance, jit, test, assert</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Iced" Version="1.15.0" />
     <PackageReference Include="IsExternalInit" Version="1.0.1">
