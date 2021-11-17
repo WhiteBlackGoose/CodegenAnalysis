@@ -4,9 +4,15 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
-Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.AddG(3, 5)));
-Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.AddG(3f, 5f)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(3f)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Do1(3f)));
+unsafe
+{
+Console.WriteLine(((ulong)(delegate*<float, float>)&A.Do1).ToString("X16"));
+}
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Default, () => A.AddG(3f, 5f)));
 
 class A
 {
@@ -14,6 +20,22 @@ class A
     public static int Add1(int a, int b) => a + b * a;
     public static float Add(float a, float b) => a + b * a;
     public static float AddF(float a, float b, Func<int, int> _) => a + b * a;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float Do1(float a)
+    {
+        return a * 2;
+    }
+
+    public static float Heavy(float a)
+    {
+        var b = Do1(a);
+        var c = Do1(b);
+        return AddN(b, c);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float AddN(float a, float b) => a + b;
 
     public static T AddG<T>(T a, T b)
     {

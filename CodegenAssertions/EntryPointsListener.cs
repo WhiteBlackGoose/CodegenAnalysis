@@ -58,6 +58,7 @@ internal class EntryPointsListener : EventListener
                 return;
             var key = mb;
             MethodByAddress[(nuint)start] = mb;
+            MethodByAddress[(nuint)(nint)mb.MethodHandle.GetFunctionPointer()] = mb;
             if (Codegens.TryGetValue(key, out var list))
                 list.Add(res);
             else

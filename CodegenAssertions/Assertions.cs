@@ -15,7 +15,9 @@ public enum CompilationTier
 
 public static partial class AssertCodegen
 {
-    private static readonly Func<Instruction, bool> isBranch = i => i.Code.ToString().StartsWith("Cmp") || i.Code.ToString().StartsWith("Test");
+    // TODO
+    private static readonly Func<Instruction, bool> isBranch = i => i.Code.ToString().StartsWith("J") && !i.Code.ToString().StartsWith("Jmp");
+    // TODO
     private static readonly Func<Instruction, bool> isCall = i => i.Code.ToString().StartsWith("Call");
 
     private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
@@ -42,7 +44,7 @@ public static partial class AssertCodegen
     public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
-        AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "The method was expected to be smaller");
+        AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "Expected to be smaller");
     }
 
 
@@ -64,7 +66,7 @@ public static partial class AssertCodegen
     }
     public static void NoBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        HasInRange(tier, null, 0, isBranch, "cmps", mi, arguments);
+        HasInRange(tier, null, 0, isBranch, "branches", mi, arguments);
     }
 
     public static void HasCalls(CompilationTier tier, Expr expr)
@@ -116,7 +118,7 @@ public static partial class AssertCodegen
             .Where(p => pred(p.Instruction))
             .Select(p => p.Index);
         var count = problematicLines.Count();
-        var message = $"It was supposed to contain ";
+        var message = $"Expected to contain ";
 
         if (from is { } aFrom)
             message += $"at least {aFrom}";
