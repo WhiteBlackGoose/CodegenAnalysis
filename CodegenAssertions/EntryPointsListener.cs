@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace CodegenAssertions;
 
@@ -37,7 +38,14 @@ internal class EntryPointsListener : EventListener
             var res = new Lazy<CodegenInfo>(() =>
                 {
                     byte[] codeBytes = new byte[size];
+#if NET5_0_OR_GREATER
                     Unsafe.CopyBlock(ref codeBytes[0], ref *(byte*)start, size);
+#else
+                    fixed (byte* dst = codeBytes)
+                    {
+                        Buffer.MemoryCopy((byte*)start, dst, size, size);
+                    }
+#endif
                     return new CodegenInfo(codeBytes, (nuint)start, opt.ToPublicCT(), Disassembler.BytesToInstruction(codeBytes, (nuint)start));
                 });
 
@@ -65,12 +73,19 @@ internal static class MethodBaseHelper
     private static readonly Type RuntimeType;
     private static readonly MethodInfo RuntimeType_GetMethodBase;
 
+    private static readonly BindingFlags DoNotWrapExceptions =
+#if NET5_0_OR_GREATER
+        BindingFlags.DoNotWrapExceptions;
+#else
+        (BindingFlags)33554432;
+#endif
+
     static MethodBaseHelper()
     {
         RuntimeMethodHandleInternal ??= typeof(RuntimeMethodHandle).Assembly.GetType("System.RuntimeMethodHandleInternal", throwOnError: true)!;
         RuntimeMethodHandleInternal_Constructor ??= RuntimeMethodHandleInternal.GetConstructor
         (
-            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DoNotWrapExceptions,
+            BindingFlags.NonPublic | BindingFlags.Instance | DoNotWrapExceptions,
             binder: null,
             new[] { typeof(IntPtr) },
             modifiers: null
@@ -80,7 +95,7 @@ internal static class MethodBaseHelper
         RuntimeType_GetMethodBase ??= RuntimeType.GetMethod
         (
             "GetMethodBase",
-            BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DoNotWrapExceptions,
+            BindingFlags.NonPublic | BindingFlags.Static | DoNotWrapExceptions,
             binder: null,
             new[] { RuntimeType, RuntimeMethodHandleInternal },
             modifiers: null

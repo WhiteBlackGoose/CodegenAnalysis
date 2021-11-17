@@ -8,6 +8,11 @@ namespace CodegenAssertions;
 
 public static class CodegenInfoResolver
 {
+#if !NET5_0_OR_GREATER
+    internal static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
+        => dict.TryGetValue(key, out var res) ? res : default(TValue);
+#endif
+
     private static CodegenInfo? GetByNameAndTier(MethodBase name, CompilationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
@@ -19,7 +24,8 @@ public static class CodegenInfoResolver
 
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        System.ArgumentNullException.ThrowIfNull(mi);
+        if (mi is null)
+            throw new System.ArgumentNullException(nameof(mi));
         var key = mi!;
         if (GetByNameAndTier(key, tier) is { } res)
             return res;
