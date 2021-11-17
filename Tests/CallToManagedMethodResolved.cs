@@ -37,4 +37,31 @@ public class CallToManagedMethodResolved
         var ci = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Heavy(3f));
         Assert.Contains("jmp       Single AddN(Single, Single)", ci.ToString());
     }
+
+    public static float Ducks(float a)
+    {
+        Quack();
+        Quack(3);
+        if (a > 3)
+            return Quack(3);
+        else
+            return Quack();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float Quack(float c)
+        => 3.4f + c;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static float Quack()
+        => 3.5f;
+
+    [Fact]
+    public void JbeNameResolved()
+    {
+        var ci = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Ducks(3.1f));
+        CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Ducks(2.9f));
+        Assert.Contains("jmp       Single Quack(Single)", ci.ToString());
+        Assert.Contains("jmp       Single Quack()", ci.ToString());
+    }
 }

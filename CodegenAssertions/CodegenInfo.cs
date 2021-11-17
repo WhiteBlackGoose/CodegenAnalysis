@@ -39,7 +39,7 @@ public record CodegenInfo(byte[] Bytes, nuint InstructionPointer, CompilationTie
                 sb.Append("  ");
             sb.Append(" ");
             formatter.Format(instr, output);
-            if ((instr.IsCallNear || instr.IsJmpNear || instr.IsJccNear || instr.IsJkccNear)&& EntryPointsListener.MethodByAddress.TryGetValue((nuint)instr.NearBranch64, out var methodBase))
+            if ((instr.Op0Kind == OpKind.NearBranch64 && instr.OpCount is 1) && EntryPointsListener.MethodByAddress.TryGetValue((nuint)instr.NearBranch64, out var methodBase))
             {
                 var o = output.ToStringAndReset().ToString();
                 sb.Append(o.Substring(0, o.Length - 20));
