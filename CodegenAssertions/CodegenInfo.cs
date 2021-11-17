@@ -42,7 +42,6 @@ public record CodegenInfo(byte[] Bytes, nuint InstructionPointer, CompilationTie
             if ((instr.IsCallNear || instr.IsJmpNear || instr.IsJccNear || instr.IsJkccNear)&& EntryPointsListener.MethodByAddress.TryGetValue((nuint)instr.NearBranch64, out var methodBase))
             {
                 var o = output.ToStringAndReset().ToString();
-                // System.Console.WriteLine("AAAAAAAAAAAAAAAAA" + o);
                 sb.Append(o.Substring(0, o.Length - 20));
                 sb.Append(methodBase.ToString());
                 sb.Append(" ").Append('(').Append(((ulong)instr.NearBranch64).ToString("X16")).AppendLine(")");

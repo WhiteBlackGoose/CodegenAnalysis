@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>0.0.0-alpha</Version>
+    <Version>0.0.1-alpha</Version>
     <Authors>WhiteBlackGoose</Authors>
     <Copyright>© WhiteBlackGoose 2021</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Test release.</PackageReleaseNotes>
+    <PackageReleaseNotes>Disassembled target methods for calls and jumps. Messages got conciser.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAssertions</RepositoryUrl>
     <PackageTags>performance, jit, test, assert</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

@@ -8,11 +8,6 @@ using System.Runtime.CompilerServices;
 
 Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(3f)));
 Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Do1(3f)));
-unsafe
-{
-Console.WriteLine(((ulong)(delegate*<float, float>)&A.Do1).ToString("X16"));
-}
-// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Default, () => A.AddG(3f, 5f)));
 
 class A
 {
