@@ -25,7 +25,7 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.CodegenLessThan(20, CompilationTier.Default, () => SomeMethod(4, 5));
+        AssertCodegen.CodegenLessThan(20, CompilationTier.Tier1, () => SomeMethod(4, 5));
     }
 
     [Fact]
