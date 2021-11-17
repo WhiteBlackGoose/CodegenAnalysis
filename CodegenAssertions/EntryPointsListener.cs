@@ -42,6 +42,8 @@ internal class EntryPointsListener : EventListener
                 });
 
             var methodId = (ulong)GetPayload("MethodID");
+            if (methodId is 0)
+                return;
             var mb = MethodBaseHelper.GetMethodBaseFromHandle((IntPtr)methodId);
             if (mb is null)
                 return;
@@ -58,12 +60,12 @@ internal class EntryPointsListener : EventListener
 // https://github.com/dotnet/runtime/discussions/46215
 internal static class MethodBaseHelper
 {
-    private static Type? RuntimeMethodHandleInternal;
-    private static ConstructorInfo? RuntimeMethodHandleInternal_Constructor;
-    private static Type? RuntimeType;
-    private static MethodInfo? RuntimeType_GetMethodBase;
+    private static readonly Type RuntimeMethodHandleInternal;
+    private static readonly ConstructorInfo RuntimeMethodHandleInternal_Constructor;
+    private static readonly Type RuntimeType;
+    private static readonly MethodInfo RuntimeType_GetMethodBase;
 
-    public static MethodBase? GetMethodBaseFromHandle(IntPtr handle)
+    static MethodBaseHelper()
     {
         RuntimeMethodHandleInternal ??= typeof(RuntimeMethodHandle).Assembly.GetType("System.RuntimeMethodHandleInternal", throwOnError: true)!;
         RuntimeMethodHandleInternal_Constructor ??= RuntimeMethodHandleInternal.GetConstructor
@@ -84,6 +86,10 @@ internal static class MethodBaseHelper
             modifiers: null
         ) ?? throw new InvalidOperationException("RuntimeType.GetMethodBase is missing!");
 
+    }
+
+    public static MethodBase? GetMethodBaseFromHandle(IntPtr handle)
+    {
         // Wrap the handle
         object runtimeHandle = RuntimeMethodHandleInternal_Constructor.Invoke(new[] { (object)handle });
         return (MethodBase?)RuntimeType_GetMethodBase.Invoke(null, new[] { null, runtimeHandle });
