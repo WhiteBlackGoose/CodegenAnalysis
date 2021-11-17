@@ -22,5 +22,5 @@ jobs:
       - run: |
           dotnet restore
           cd Tests
-          dotnet run -c release
+          dotnet test -c release
           
