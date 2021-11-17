@@ -8,7 +8,7 @@ namespace CodegenAssertions;
 
 public static class CodegenInfoResolver
 {
-    private static CodegenInfo? GetByNameAndTier(string name, CompilationTier tier)
+    private static CodegenInfo? GetByNameAndTier(MethodBase name, CompilationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, Expr expr)
@@ -20,7 +20,7 @@ public static class CodegenInfoResolver
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         System.ArgumentNullException.ThrowIfNull(mi);
-        var key = $"{mi.DeclaringType?.FullName}.{mi.Name}";
+        var key = mi!;
         if (GetByNameAndTier(key, tier) is { } res)
             return res;
         if (tier is CompilationTier.Default)

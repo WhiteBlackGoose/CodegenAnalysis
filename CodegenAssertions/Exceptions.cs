@@ -11,7 +11,15 @@ public class CodegenAssertionFailedException : Exception
 public sealed class RequestedTierNotFoundException : CodegenAssertionFailedException
 {
     internal RequestedTierNotFoundException(CompilationTier tier)
-        : base($"Tier {tier} not found. Try toggling the build configuration.") { }
+        : base($"Tier {tier} not found. Try toggling the build configuration to Release. Make sure that "
+            + tier switch
+            {
+                CompilationTier.Tier1 => "the method is not annotated with AggressiveOptimization or NoOptimization",
+                CompilationTier.AO => "the method is annotated with AggressiveOptimization",
+                CompilationTier.Default => "the method is not annotated with AggressiveOptimization",
+                _ => throw new("Um, oops")
+            }
+        ) { }
 }
 
 public sealed class RequestedMethodNotCapturedForJittingException : CodegenAssertionFailedException

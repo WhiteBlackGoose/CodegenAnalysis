@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace CodegenAssertions;
@@ -8,7 +9,7 @@ namespace CodegenAssertions;
 internal class EntryPointsListener : EventListener
 {
     internal static readonly EntryPointsListener listener = new();
-    internal static readonly Dictionary<string, List<Lazy<CodegenInfo>>> Codegens = new();
+    internal static readonly Dictionary<MethodBase, List<Lazy<CodegenInfo>>> Codegens = new();
 
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
@@ -25,11 +26,9 @@ internal class EntryPointsListener : EventListener
             => (eventData.Payload ?? throw new("Unexpected error"))
               [(eventData.PayloadNames ?? throw new("Unexpected error")).IndexOf(key)]
               ?? throw new("Unexpected error");
-
+        
         if (eventData.EventName == "MethodLoadVerbose_V2")
         {
-            string fullClassName = (string)GetPayload("MethodNamespace");
-            string methodName = (string)GetPayload("MethodName");
             uint flags = (uint)GetPayload("MethodFlags");
             ulong start = (ulong)GetPayload("MethodStartAddress");
             uint size = (uint)GetPayload("MethodSize");
@@ -42,11 +41,51 @@ internal class EntryPointsListener : EventListener
                     return new CodegenInfo(codeBytes, (nuint)start, opt.ToPublicCT(), Disassembler.BytesToInstruction(codeBytes, (nuint)start));
                 });
 
-            var key = $"{fullClassName}.{methodName}";
+            var methodId = (ulong)GetPayload("MethodID");
+            var mb = MethodBaseHelper.GetMethodBaseFromHandle((IntPtr)methodId);
+            if (mb is null)
+                return;
+            var key = mb;
             if (Codegens.TryGetValue(key, out var list))
                 list.Add(res);
             else
                 Codegens[key] = new() { res };
         }
+    }
+}
+
+
+// https://github.com/dotnet/runtime/discussions/46215
+internal static class MethodBaseHelper
+{
+    private static Type? RuntimeMethodHandleInternal;
+    private static ConstructorInfo? RuntimeMethodHandleInternal_Constructor;
+    private static Type? RuntimeType;
+    private static MethodInfo? RuntimeType_GetMethodBase;
+
+    public static MethodBase? GetMethodBaseFromHandle(IntPtr handle)
+    {
+        RuntimeMethodHandleInternal ??= typeof(RuntimeMethodHandle).Assembly.GetType("System.RuntimeMethodHandleInternal", throwOnError: true)!;
+        RuntimeMethodHandleInternal_Constructor ??= RuntimeMethodHandleInternal.GetConstructor
+        (
+            BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DoNotWrapExceptions,
+            binder: null,
+            new[] { typeof(IntPtr) },
+            modifiers: null
+        ) ?? throw new InvalidOperationException("RuntimeMethodHandleInternal constructor is missing!");
+
+        RuntimeType ??= typeof(Type).Assembly.GetType("System.RuntimeType", throwOnError: true)!;
+        RuntimeType_GetMethodBase ??= RuntimeType.GetMethod
+        (
+            "GetMethodBase",
+            BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.DoNotWrapExceptions,
+            binder: null,
+            new[] { RuntimeType, RuntimeMethodHandleInternal },
+            modifiers: null
+        ) ?? throw new InvalidOperationException("RuntimeType.GetMethodBase is missing!");
+
+        // Wrap the handle
+        object runtimeHandle = RuntimeMethodHandleInternal_Constructor.Invoke(new[] { (object)handle });
+        return (MethodBase?)RuntimeType_GetMethodBase.Invoke(null, new[] { null, runtimeHandle });
     }
 }
