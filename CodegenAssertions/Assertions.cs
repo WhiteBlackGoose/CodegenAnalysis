@@ -1,5 +1,6 @@
 ﻿using Iced.Intel;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -22,11 +23,11 @@ public static partial class AssertCodegen
         }
     }
 
-    private static void AssertFact(bool fact, CodegenInfo ci, string comment)
+    private static void AssertFact(bool fact, CodegenInfo ci, IEnumerable<int>? problematicLines, string comment)
     {
         if (!fact)
         {
-            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci}");
+            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci.ToString(problematicLines)}");
         }
     }
 
@@ -66,10 +67,12 @@ public static partial class AssertCodegen
     internal static void CodegenDoesNotHave(CompilationTier tier, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
+        var problematicLines = ci.Instructions
+            .Select((i, index) => (Instruction: i, Index: index))
+            .Where(p => pred(p.Instruction))
+            .Select(p => p.Index);
         AssertFact(
-            !ci
-            .Instructions
-            .Any(pred), ci, $"It was supposed not to contain {comment}");
+            !problematicLines.Any(), ci, problematicLines, $"It was supposed not to contain {comment}");
     }
 
     public static void CodegenHasCalls(CompilationTier tier, Expr expr)
@@ -100,6 +103,6 @@ public static partial class AssertCodegen
         AssertFact(
             ci
             .Instructions
-            .Any(pred), ci, $"It was supposed to contain {comment}");
+            .Any(pred), ci, null, $"It was supposed to contain {comment}");
     }
 }

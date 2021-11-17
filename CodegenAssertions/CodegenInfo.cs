@@ -1,11 +1,14 @@
 ﻿using Iced.Intel;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CodegenAssertions;
 
 public record CodegenInfo(byte[] Bytes, nuint InstructionPointer, CompilationTier Tier, Instruction[] Instructions)
 {
-    public override unsafe string ToString()
+    public override string ToString() => ToString(null);
+
+    internal unsafe string ToString(IEnumerable<int>? linesToHighlight)
     {
         // adapted from https://github.com/icedland/iced/blob/master/src/csharp/Intel/README.md#disassemble-decode-and-format-instructions
         var sb = new System.Text.StringBuilder();
@@ -13,8 +16,18 @@ public record CodegenInfo(byte[] Bytes, nuint InstructionPointer, CompilationTie
         formatter.Options.DigitSeparator = "`";
         formatter.Options.FirstOperandCharIndex = 10;
         var output = new StringOutput();
+        var linesToHighlightSet = linesToHighlight is not null ? new HashSet<int>(linesToHighlight) : null;
+        var lineId = 0;
         foreach (var instr in Instructions)
         {
+            if (linesToHighlightSet is not null)
+            {
+                if (linesToHighlightSet.Contains(lineId))
+                    sb.Append(">>> ");
+                else
+                    sb.Append("    ");
+            }
+            lineId++;
             formatter.Format(instr, output);
             sb.Append(instr.IP.ToString("X16")).Append(" ");
             int instrLen = instr.Length;
