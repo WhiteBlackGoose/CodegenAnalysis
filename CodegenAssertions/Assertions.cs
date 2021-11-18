@@ -9,7 +9,6 @@ namespace CodegenAssertions;
 public enum CompilationTier
 {
     Default,
-    AO,
     Tier1
 }
 

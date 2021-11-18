@@ -34,6 +34,7 @@ internal class EntryPointsListener : EventListener
             uint flags = (uint)GetPayload("MethodFlags");
             ulong start = (ulong)GetPayload("MethodStartAddress");
             uint size = (uint)GetPayload("MethodSize");
+
             InternalOptimizationTier opt = (InternalOptimizationTier)((flags >> 7) & 0b111);
 
             var res = new Lazy<CodegenInfo>(() =>

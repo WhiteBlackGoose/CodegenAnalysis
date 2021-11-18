@@ -14,8 +14,7 @@ public sealed class RequestedTierNotFoundException : CodegenAssertionFailedExcep
         : base($"Tier {tier} not found. Try toggling the build configuration to Release. Make sure that "
             + tier switch
             {
-                CompilationTier.Tier1 => "the method is not annotated with AggressiveOptimization or NoOptimization",
-                CompilationTier.AO => "the method is annotated with AggressiveOptimization",
+                CompilationTier.Tier1 => "the method is not annotated with NoOptimization",
                 CompilationTier.Default => "the method is not annotated with AggressiveOptimization",
                 _ => throw new("Um, oops")
             }

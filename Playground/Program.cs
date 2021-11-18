@@ -6,11 +6,24 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(3f)));
-Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Do1(3f)));
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(3f)));
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Do1(3f)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.LoopHHH(3)));
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.AddAO(3, 5)));
 
 class A
 {
+    public static int LoopHHH(int a)
+    {
+        var res = 0d;
+        for (int i = 0; i < a; i++)
+            res += a;
+        return (int)res;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public static int AddAO(int a, int b) => a + b * a;
+
     public static int Add(int a, int b) => a + b * a;
     public static int Add1(int a, int b) => a + b * a;
     public static float Add(float a, float b) => a + b * a;

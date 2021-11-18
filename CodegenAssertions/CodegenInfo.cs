@@ -72,8 +72,10 @@ internal static class Tier
         {
             InternalOptimizationTier.QuickJitted
             or InternalOptimizationTier.MinOptJitted => CompilationTier.Default,
-            InternalOptimizationTier.OptimizedTier1 => CompilationTier.Tier1,
-            InternalOptimizationTier.Optimized => CompilationTier.AO,
+
+            InternalOptimizationTier.OptimizedTier1
+            or InternalOptimizationTier.Optimized => CompilationTier.Tier1,
+
             _ => throw new($"Unknown {tier}")
         };
 }
