@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CodegenAssertions;
 
-public record CodegenInfo(byte[] Bytes, nuint InstructionPointer, CompilationTier Tier, Instruction[] Instructions)
+public record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPointer, CompilationTier Tier, IReadOnlyList<Instruction> Instructions)
 {
     public override string ToString() => ToString(null);
 

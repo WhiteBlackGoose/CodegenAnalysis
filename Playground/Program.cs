@@ -8,27 +8,13 @@ using System.Runtime.CompilerServices;
 
 // Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(3f)));
 // Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Do1(3f)));
-Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.LoopHHH(3)));
-// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.AddAO(3, 5)));
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.LoopHHH(3)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(0)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Aaa(0)));
+Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.Heavy(0)));
 
-class A
+static class A
 {
-    public static int LoopHHH(int a)
-    {
-        var res = 0d;
-        for (int i = 0; i < a; i++)
-            res += a;
-        return (int)res;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-    public static int AddAO(int a, int b) => a + b * a;
-
-    public static int Add(int a, int b) => a + b * a;
-    public static int Add1(int a, int b) => a + b * a;
-    public static float Add(float a, float b) => a + b * a;
-    public static float AddF(float a, float b, Func<int, int> _) => a + b * a;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static float Do1(float a)
     {
@@ -39,23 +25,14 @@ class A
     {
         var b = Do1(a);
         var c = Do1(b);
-        return AddN(b, c);
+        if (a > 10)
+            c += Aaa(a);
+        return c + b;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static float AddN(float a, float b) => a + b;
-
-    public static T AddG<T>(T a, T b)
+    public static float Aaa(float h)
     {
-        if (typeof(T) == typeof(int))
-            return (T)(object)((int)(object)a + (int)(object)b);
-        else if (typeof(T) == typeof(float))
-            return (T)(object)((float)(object)a + (float)(object)b);
-        return default!;
-    }
-
-    public static class GenericDuck<T>
-    {
-        public static T AddC(T a, T b) => AddG<T>(a, b);
+        return h * h * h;
     }
 }

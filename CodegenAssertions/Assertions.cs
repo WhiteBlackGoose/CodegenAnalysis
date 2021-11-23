@@ -14,10 +14,8 @@ public enum CompilationTier
 
 public static partial class AssertCodegen
 {
-    // TODO
-    private static readonly Func<Instruction, bool> isBranch = i => i.Code.ToString().StartsWith("J") && !i.Code.ToString().StartsWith("Jmp");
-    // TODO
-    private static readonly Func<Instruction, bool> isCall = i => i.Code.ToString().StartsWith("Call");
+    
+    
 
     private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
     {
@@ -43,7 +41,7 @@ public static partial class AssertCodegen
     public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
-        AssertFact(ci.Bytes.Length <= expectedLength, expectedLength, ci.Bytes.Length, ci, "Expected to be smaller");
+        AssertFact(ci.Bytes.Count <= expectedLength, expectedLength, ci.Bytes.Count, ci, "Expected to be smaller");
     }
 
 
@@ -54,7 +52,7 @@ public static partial class AssertCodegen
     }
     public static void NoCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        HasInRange(tier, null, 0, isCall, "calls", mi, arguments);
+        HasInRange(tier, null, 0, CodegenAnalyzers.GetCalls, "calls", mi, arguments);
     }
 
 
@@ -65,7 +63,7 @@ public static partial class AssertCodegen
     }
     public static void NoBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        HasInRange(tier, null, 0, isBranch, "branches", mi, arguments);
+        HasInRange(tier, null, 0, CodegenAnalyzers.GetBranches, "branches", mi, arguments);
     }
 
     public static void HasCalls(CompilationTier tier, Expr expr)
@@ -75,7 +73,7 @@ public static partial class AssertCodegen
     }
     public static void HasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        HasInRange(tier, 1, null, isCall, "calls", mi, arguments);
+        HasInRange(tier, 1, null, CodegenAnalyzers.GetCalls, "calls", mi, arguments);
     }
 
 
@@ -86,36 +84,59 @@ public static partial class AssertCodegen
     }
     public static void HasBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
     {
-        HasInRange(tier, 1, null, isBranch, "branches", mi, arguments);
+        HasInRange(tier, 1, null, CodegenAnalyzers.GetBranches, "branches", mi, arguments);
     }
 
 
     public static void HasBranchesAtLeast(int atLeast, CompilationTier tier, Expr expr)
-        => HasInRange(tier, atLeast, null, isBranch, "branches", expr);
+        => HasInRange(tier, atLeast, null, CodegenAnalyzers.GetBranches, "branches", expr);
 
     public static void HasBranchesNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
-        => HasInRange(tier, null, upperLimit, isBranch, "branches", expr);
+        => HasInRange(tier, null, upperLimit, CodegenAnalyzers.GetBranches, "branches", expr);
 
     public static void HasCallsAtLeast(int atLeast, CompilationTier tier, Expr expr)
-        => HasInRange(tier, atLeast, null, isCall, "calls", expr);
+        => HasInRange(tier, atLeast, null, CodegenAnalyzers.GetCalls, "calls", expr);
 
     public static void HasCallsNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
-        => HasInRange(tier, null, upperLimit, isCall, "calls", expr);
+        => HasInRange(tier, null, upperLimit, CodegenAnalyzers.GetCalls, "calls", expr);
 
 
-    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<Instruction, bool> pred, string comment, Expr expr)
+    public static void StackAllocatesInRange(int lowerLimit, int upperLimit, CompilationTier tier, Expr expr)
+        => NumberInRange(tier, lowerLimit, upperLimit, CodegenAnalyzers.GetStaticStackAllocatedMemory, "static stack allocated memory", expr);
+
+    public static void StackAllocatesNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
+        => NumberInRange(tier, 0, upperLimit, CodegenAnalyzers.GetStaticStackAllocatedMemory, "static stack allocated memory", expr);
+
+    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, Expr expr)
     {
         var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
         HasInRange(tier, from, to, pred, comment, mi, args);
     }
 
-    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<Instruction, bool> pred, string comment, MethodInfo? mi, params object?[] arguments)
+    internal static void NumberInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, int?> pred, string comment, Expr expr)
+    {
+        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, args);
+        var message = $"Expected to contain ";
+        var count = pred(ci.Instructions);
+        if (from is { } aFrom)
+            message += $"at least {aFrom}";
+        if (from is not null && to is not null)
+            message += " no more than ";
+        if (to is { } aTo)
+            message += aTo;
+        message += $" {comment}, got {count} instead";
+
+        AssertFact(
+            (from is not { } nnFrom || count >= nnFrom)
+            && (to is not { } nnTo || count <= nnTo),
+            ci, null, message);
+    }
+
+    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, MethodInfo? mi, params object?[] arguments)
     {
         var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
-        var problematicLines = ci.Instructions
-            .Select((i, index) => (Instruction: i, Index: index))
-            .Where(p => pred(p.Instruction))
-            .Select(p => p.Index);
+        var problematicLines = pred(ci.Instructions);
         var count = problematicLines.Count();
         var message = $"Expected to contain ";
 

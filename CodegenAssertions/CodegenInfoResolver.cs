@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +10,7 @@ namespace CodegenAssertions;
 public static class CodegenInfoResolver
 {
 #if !NET5_0_OR_GREATER
-    internal static TValue? GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
+    internal static TValue? GetValueOrDefault<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
         => dict.TryGetValue(key, out var res) ? res : default(TValue);
 #endif
 

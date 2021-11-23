@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Reflection;
@@ -10,8 +11,8 @@ namespace CodegenAssertions;
 internal class EntryPointsListener : EventListener
 {
     internal static readonly EntryPointsListener listener = new();
-    internal static readonly Dictionary<MethodBase, List<Lazy<CodegenInfo>>> Codegens = new();
-    internal static readonly Dictionary<nuint, MethodBase> MethodByAddress = new();
+    internal static readonly ConcurrentDictionary<MethodBase, List<Lazy<CodegenInfo>>> Codegens = new();
+    internal static readonly ConcurrentDictionary<nuint, MethodBase> MethodByAddress = new();
 
     protected override void OnEventSourceCreated(EventSource eventSource)
     {
