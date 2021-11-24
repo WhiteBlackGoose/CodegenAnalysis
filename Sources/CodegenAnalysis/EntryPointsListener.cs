@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace CodegenAssertions;
+namespace CodegenAnalysis;
 
 internal class EntryPointsListener : EventListener
 {

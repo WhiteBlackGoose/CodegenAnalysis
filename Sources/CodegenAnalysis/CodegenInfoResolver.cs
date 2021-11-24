@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-namespace CodegenAssertions;
+namespace CodegenAnalysis;
 
 public static class CodegenInfoResolver
 {

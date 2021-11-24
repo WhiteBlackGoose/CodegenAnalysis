@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CodegenAssertions;
+namespace CodegenAnalysis;
 
 public static class CodegenAnalyzers
 {

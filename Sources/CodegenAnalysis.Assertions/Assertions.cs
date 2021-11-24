@@ -4,13 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace CodegenAssertions;
-
-public enum CompilationTier
-{
-    Default,
-    Tier1
-}
+namespace CodegenAnalysis;
 
 public static partial class AssertCodegen
 {

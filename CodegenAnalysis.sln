@@ -8,24 +8,31 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sources", "Sources", "{92CE
 		Sources\Directory.Build.props = Sources\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis", "Sources\CodegenAnalysis\CodegenAnalysis.csproj", "{9ECE410D-22DA-4411-8E5B-C2635C58EE67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis", "Sources\CodegenAnalysis\CodegenAnalysis.csproj", "{9ECE410D-22DA-4411-8E5B-C2635C58EE67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Assertions", "Sources\CodegenAnalysis.Assertions\CodegenAnalysis.Assertions.csproj", "{555A53A2-E8E7-4911-8F12-1013B5B14495}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis.Assertions", "Sources\CodegenAnalysis.Assertions\CodegenAnalysis.Assertions.csproj", "{555A53A2-E8E7-4911-8F12-1013B5B14495}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Benchmarks", "Sources\CodegenAnalysis.Benchmarks\CodegenAnalysis.Benchmarks.csproj", "{A61F164C-3AB5-4F5E-B7D4-36276F119909}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis.Benchmarks", "Sources\CodegenAnalysis.Benchmarks\CodegenAnalysis.Benchmarks.csproj", "{A61F164C-3AB5-4F5E-B7D4-36276F119909}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7ADC4419-5412-4DBD-BBA8-18893DAE1EE8}"
 	ProjectSection(SolutionItems) = preProject
 		Tests\Directory.Build.props = Tests\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Benchmarks.Tests", "Tests\CodegenAnalysis.Benchmarks.Tests\CodegenAnalysis.Benchmarks.Tests.csproj", "{5C8FD46F-7FF3-4F30-B4CB-58A5EDB76CE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis.Benchmarks.Tests", "Tests\CodegenAnalysis.Benchmarks.Tests\CodegenAnalysis.Benchmarks.Tests.csproj", "{5C8FD46F-7FF3-4F30-B4CB-58A5EDB76CE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Assertions.Tests", "Tests\CodegenAnalysis.Assertions.Tests\CodegenAnalysis.Assertions.Tests.csproj", "{E86463D9-E658-441E-BD0D-E019B9FD604E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis.Assertions.Tests", "Tests\CodegenAnalysis.Assertions.Tests\CodegenAnalysis.Assertions.Tests.csproj", "{E86463D9-E658-441E-BD0D-E019B9FD604E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Tests", "Tests\CodegenAnalysis.Tests\CodegenAnalysis.Tests.csproj", "{60BADD62-6147-4B0D-AC22-5121D2F43B89}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CodegenAnalysis.Tests", "Tests\CodegenAnalysis.Tests\CodegenAnalysis.Tests.csproj", "{60BADD62-6147-4B0D-AC22-5121D2F43B89}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Playground", "Playground\Playground.csproj", "{BEDEEFD0-78FB-4EC5-A4AE-3A22AEE23BDB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_RepoItems", "_RepoItems", "{FAC286F2-A5CA-403D-AAB8-0E45900C6ED5}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

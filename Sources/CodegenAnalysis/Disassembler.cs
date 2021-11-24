@@ -1,7 +1,7 @@
 ﻿using Iced.Intel;
 using System.Collections.Generic;
 
-namespace CodegenAssertions;
+namespace CodegenAnalysis;
 
 internal static class Disassembler
 {

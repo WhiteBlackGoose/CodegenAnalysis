@@ -1,14 +1,8 @@
 ﻿using System;
 
-namespace CodegenAssertions;
+namespace CodegenAnalysis;
 
-public class CodegenAssertionFailedException : Exception
-{
-    internal CodegenAssertionFailedException() { }
-    internal CodegenAssertionFailedException(string msg) : base(msg) { }
-}
-
-public sealed class RequestedTierNotFoundException : CodegenAssertionFailedException
+public sealed class RequestedTierNotFoundException : Exception
 {
     internal RequestedTierNotFoundException(CompilationTier tier)
         : base($"Tier {tier} not found. Try toggling the build configuration to Release. Make sure that "
@@ -21,13 +15,8 @@ public sealed class RequestedTierNotFoundException : CodegenAssertionFailedExcep
         ) { }
 }
 
-public sealed class RequestedMethodNotCapturedForJittingException : CodegenAssertionFailedException
+public sealed class RequestedMethodNotCapturedForJittingException : Exception
 {
     internal RequestedMethodNotCapturedForJittingException(string method)
         : base($"Method {method} wasn't JIT-ted or JIT-ted too early. Make sure you don't run it before the test.") { }
-}
-
-public sealed class ExpectedActualException<T> : CodegenAssertionFailedException
-{
-    internal ExpectedActualException(T expected, T actual, string msg) : base($"Expected: {expected}\nActual: {actual}\nMessage: {msg}") { }
 }

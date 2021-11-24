@@ -1,4 +1,6 @@
-# CodegenAssertions
+﻿# CodegenAnalysis
+
+> ⚠️ The library is in progress (alpha versioning). No expected behaviour, no documentation, no backward compatibility.
 
 ![](https://img.shields.io/static/v1?label=Lowest+target&message=netstandard2.0&color=purple&logo=dotnet)
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/CodegenAssertions?label=NuGet&logo=nuget)](https://www.nuget.org/packages/CodegenAssertions)
