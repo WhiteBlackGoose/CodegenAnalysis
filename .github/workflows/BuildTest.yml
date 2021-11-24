@@ -21,6 +21,5 @@ jobs:
           dotnet-version: '6.0.x'
       - run: |
           dotnet restore
-          cd Tests
           dotnet test -c release
           
