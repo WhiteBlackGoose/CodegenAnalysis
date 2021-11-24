@@ -8,6 +8,9 @@ public sealed class CAInputAttribute : Attribute
     internal readonly object[] Arguments;
     public CAInputAttribute(params object[] arguments)
         => Arguments = arguments;
+
+    public override string ToString()
+        => $"({string.Join(", ", Arguments)})";
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
@@ -31,6 +34,9 @@ public sealed class CAColumnAttribute : Attribute
     {
         Column = column;
     }
+
+    public override string ToString()
+        => $"{Column}";
 }
 
 public enum CAColumn
