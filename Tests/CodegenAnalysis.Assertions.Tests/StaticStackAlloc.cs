@@ -1,9 +1,7 @@
-﻿
-using CodegenAssertions;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 
 public class StaticStackAlloc
 {

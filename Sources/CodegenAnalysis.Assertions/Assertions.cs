@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace CodegenAnalysis;
+namespace CodegenAnalysis.Assertions;
 
 public static partial class AssertCodegen
 {

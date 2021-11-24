@@ -1,9 +1,8 @@
-﻿using CodegenAssertions;
-using Xunit;
+﻿using Xunit;
 #pragma warning disable CS8605 // Unboxing a possibly null value.
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 
 public class GenericAPITests
 {

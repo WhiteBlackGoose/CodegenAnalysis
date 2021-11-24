@@ -1,8 +1,6 @@
-﻿using CodegenAnalysis;
-using System.Runtime.CompilerServices;
-using Xunit;
+﻿using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 
 public class Calls
 {

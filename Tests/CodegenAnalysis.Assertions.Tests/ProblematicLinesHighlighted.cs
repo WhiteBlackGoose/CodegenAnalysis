@@ -1,9 +1,8 @@
-﻿using CodegenAssertions;
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 
 public class ProblematicLinesHighlighted
 {

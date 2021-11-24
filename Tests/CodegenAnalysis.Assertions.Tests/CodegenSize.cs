@@ -1,8 +1,6 @@
-using CodegenAssertions;
-using System.Runtime.CompilerServices;
 using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 
 public class CodegenSize
 {

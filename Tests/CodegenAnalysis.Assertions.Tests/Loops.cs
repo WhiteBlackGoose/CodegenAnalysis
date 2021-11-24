@@ -1,8 +1,6 @@
-﻿using CodegenAssertions;
-using System.Runtime.CompilerServices;
-using Xunit;
+﻿using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 public class Loops
 {
     public static int LoopHHH(int a)

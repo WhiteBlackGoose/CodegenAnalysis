@@ -1,10 +1,7 @@
-﻿using CodegenAssertions;
-using System;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
+﻿using System.Runtime.CompilerServices;
 using Xunit;
 
-namespace Tests;
+namespace CodegenAnalysis.Assertions.Tests;
 public class CallToManagedMethodResolved
 {
     [MethodImpl(MethodImplOptions.NoInlining)]

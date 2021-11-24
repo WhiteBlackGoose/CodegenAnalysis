@@ -1,5 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using CodegenAssertions;
+using CodegenAnalysis;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Numerics;

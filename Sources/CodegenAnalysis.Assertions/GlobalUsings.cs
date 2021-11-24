@@ -1,0 +1,1 @@
+﻿global using Expr = System.Linq.Expressions.Expression<System.Action>;

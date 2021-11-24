@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Sources\CodegenAnalysis\CodegenAnalysis.csproj" />
+    <ProjectReference Include="..\..\Sources\CodegenAnalysis\CodegenAnalysis.csproj" />
   </ItemGroup>
 
 </Project>
