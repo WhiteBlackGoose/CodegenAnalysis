@@ -17,18 +17,68 @@ public static class CodegenBenchmarkRunner
         output ??= new();
 
         var jobs = GetJobs(type);
-        output?.Logger?.WriteLine($"Detected jobs: {string.Join(", ", jobs)}");
+        output?.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.Blue);
 
-        var columns = GetColumns(type);
-        output?.Logger?.WriteLine($"Detected columns: {string.Join(", ", columns)}");
+        var columns = GetColumns(type).ToArray();
+        output?.Logger?.WriteLine($"\nDetected columns: \n  {string.Join("\n  ", (IEnumerable<CAColumnAttribute>)columns)}", ConsoleColor.Blue);
 
         var methods = GetMethods(type);
-        output?.Logger?.WriteLine($"Detected methods: {string.Join(", ", methods)}");
+        output?.Logger?.WriteLine($"\nDetected methods: \n  {string.Join("\n  ", methods.Select(c => c.Info + "(" + string.Join(", ", c.Args) + ")"))}", ConsoleColor.Blue);
+
+        var codegens = new Dictionary<MethodInfo, CodegenInfo>();
+        var table = new MarkdownTable(new [] { "Job", "Method", "Input" }.Concat(columns.Select(c => c.ToString())));
+
+        output?.Logger?.WriteLine("");
+
+        var rowId = 0;
+        // for (int i = 0; i < jobs.Length; i++)
+        foreach (var job in jobs)
+        {
+            foreach (var (mi, args) in methods)
+            {
+                output?.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
+                var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, args);
+                codegens[mi] = ci; // overwriting the last to get a richer result
+                table[rowId, 0] = job.ToString();
+                table[rowId, 1] = mi.ToString();
+                table[rowId, 2] = string.Join(", ", args);
+                
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    table[rowId, i + 3] = columns[i].Column switch
+                    {
+                        CAColumn.Branches => IntToString(CodegenAnalyzers.GetBranches(ci.Instructions).Count()),
+                        CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
+                        CAColumn.CodegenSize => BytesToString(ci.Bytes.Count),
+                        CAColumn.StaticStackAllocations => BytesToString(CodegenAnalyzers.GetStaticStackAllocatedMemory(ci.Instructions)),
+                        var unexpected => throw new($"Internal error. Unexpected {unexpected}")
+                    };
+                }
+                rowId++;
+            }
+        }
+
+        output?.Logger?.WriteLine("");
+
+        output?.Logger?.WriteLine(table.ToString(), ConsoleColor.DarkMagenta);
+        
+        static string IntToString(int a)
+            => a is 0 ? " - " : a.ToString();
+
+        static string BytesToString(int? a)
+            => a switch
+            {
+                0 => " - ",
+                null => " ? ",
+                { } other => $"{other} B"
+            };
     }
 
     private static IEnumerable<CAJobAttribute> GetJobs(Type type)
     {
-        return type.GetCustomAttributes(typeof(CAJobAttribute), false).Select(c => (CAJobAttribute)c);
+        return type
+                .GetCustomAttributes(typeof(CAJobAttribute), false)
+                .Select(c => (CAJobAttribute)c);
     }
 
     private static IEnumerable<CAColumnAttribute> GetColumns(Type type)

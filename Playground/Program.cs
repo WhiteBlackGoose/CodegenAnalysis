@@ -9,8 +9,8 @@ using System.Runtime.CompilerServices;
 
 CodegenBenchmarkRunner.Run<A>();
 
-[CAJob(Tier = CompilationTier.Tier1), 
- CAJob(Tier = CompilationTier.Default)]
+[CAJob(Tier = CompilationTier.Default),
+ CAJob(Tier = CompilationTier.Tier1)]
 
 [CAColumn(CAColumn.Branches), 
  CAColumn(CAColumn.Calls), 

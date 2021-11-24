@@ -6,13 +6,13 @@ namespace CodegenAnalysis.Benchmarks;
 
 public interface IWriter : IDisposable
 {
-    public void Write(string text);
+    public void Write(string text, ConsoleColor color);
 }
 
 internal static class IWriterExtensions
 {
-    public static void WriteLine(this IWriter writer, string text)
-        => writer.Write(text + "\n");
+    public static void WriteLine(this IWriter writer, string text, ConsoleColor color = ConsoleColor.Gray)
+        => writer.Write(text + "\n", color);
 }
 
 public sealed record class Output
@@ -26,9 +26,12 @@ public sealed record class Output
 
 internal sealed class ConsoleWriter : IWriter
 {
-    public void Write(string text)
+    public void Write(string text, ConsoleColor color)
     {
+        var prev = Console.ForegroundColor;
+        Console.ForegroundColor = color;
         Console.Write(text);
+        Console.ForegroundColor = prev;
     }
 
     public void Dispose()
@@ -46,9 +49,9 @@ internal sealed class ToFileWriter : IWriter
         this.path = path;
     }
 
-    public void Write(string text)
+    public void Write(string text, ConsoleColor _)
     {
-        // use inner buffer instead of appending every time
+        // TODO: use inner buffer instead of appending every time
         File.AppendAllText(path, text);
     }
 
