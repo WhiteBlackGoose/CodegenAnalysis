@@ -17,15 +17,15 @@ public static class CodegenBenchmarkRunner
         output ??= new();
 
         var jobs = GetJobs(type);
-        output?.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.Blue);
+        output?.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.DarkMagenta);
 
         var columns = GetColumns(type).ToArray();
-        output?.Logger?.WriteLine($"\nDetected columns: \n  {string.Join("\n  ", (IEnumerable<CAColumnAttribute>)columns)}", ConsoleColor.Blue);
+        output?.Logger?.WriteLine($"\nDetected columns: \n  {string.Join("\n  ", (IEnumerable<CAColumnAttribute>)columns)}", ConsoleColor.DarkMagenta);
 
         var methods = GetMethods(type);
-        output?.Logger?.WriteLine($"\nDetected methods: \n  {string.Join("\n  ", methods.Select(c => c.Info + "(" + string.Join(", ", c.Args) + ")"))}", ConsoleColor.Blue);
+        output?.Logger?.WriteLine($"\nDetected methods: \n  {string.Join("\n  ", methods.Select(c => c.Info + "(" + string.Join(", ", c.Args) + ")"))}", ConsoleColor.DarkMagenta);
 
-        var codegens = new Dictionary<MethodInfo, CodegenInfo>();
+        var codegens = new SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo>(new MiTierComparer());
         var table = new MarkdownTable(new [] { "Job", "Method", "Input" }.Concat(columns.Select(c => c.ToString())));
 
         output?.Logger?.WriteLine("");
@@ -38,7 +38,7 @@ public static class CodegenBenchmarkRunner
             {
                 output?.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
                 var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, args);
-                codegens[mi] = ci; // overwriting the last to get a richer result
+                codegens[(mi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = mi.ToString();
                 table[rowId, 2] = string.Join(", ", args);
@@ -60,7 +60,16 @@ public static class CodegenBenchmarkRunner
 
         output?.Logger?.WriteLine("");
 
-        output?.Logger?.WriteLine(table.ToString(), ConsoleColor.DarkMagenta);
+        foreach (var pair in codegens)
+        {
+            var (mi, ci) = (pair.Key, pair.Value);
+            output?.Logger?.WriteLine("");
+            output?.Logger?.WriteLine(mi.ToString(), ConsoleColor.Blue);
+            output?.Logger?.WriteLine("    " + ci.ToString().Replace("\n", "\n    "), ConsoleColor.DarkGray);
+            output?.Logger?.WriteLine("");
+        }
+
+        output?.Logger?.WriteLine(table.ToString(), ConsoleColor.Blue);
         
         static string IntToString(int a)
             => a is 0 ? " - " : a.ToString();
@@ -72,6 +81,17 @@ public static class CodegenBenchmarkRunner
                 null => " ? ",
                 { } other => $"{other} B"
             };
+    }
+
+
+    private class MiTierComparer : IComparer<(MethodInfo, CompilationTier)>
+    {
+        public int Compare((MethodInfo, CompilationTier) x, (MethodInfo, CompilationTier) y)
+        {
+            if (x.Item1 == y.Item1)
+                return ((int)x.Item2).CompareTo((int)y.Item2);
+            return x.Item1.GetHashCode().CompareTo(y.Item1.GetHashCode());
+        }
     }
 
     private static IEnumerable<CAJobAttribute> GetJobs(Type type)
