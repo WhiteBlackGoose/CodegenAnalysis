@@ -12,10 +12,13 @@ CodegenBenchmarkRunner.Run<A>();
 [CAJob(Tier = CompilationTier.Default),
  CAJob(Tier = CompilationTier.Tier1)]
 
-[CAColumn(CAColumn.Branches), 
+[CAColumn(CAColumn.Branches),
  CAColumn(CAColumn.Calls), 
  CAColumn(CAColumn.CodegenSize), 
  CAColumn(CAColumn.StaticStackAllocations)]
+
+[CAExport(Export.Html),
+ CAExport(Export.Md)]
 public class A
 {
     [CAInput(3.5f)]

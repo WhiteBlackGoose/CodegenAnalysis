@@ -46,3 +46,19 @@ public enum CAColumn
     Branches,
     StaticStackAllocations
 }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class CAExport : Attribute
+{
+    internal readonly Export Export;
+    public CAExport(Export export)
+    {
+        Export = export;
+    }
+}
+
+public enum Export
+{
+    Html,
+    Md
+}

@@ -6,7 +6,7 @@ namespace CodegenAnalysis.Benchmarks;
 
 public interface IWriter : IDisposable
 {
-    public void Write(string text, ConsoleColor color);
+    public void Write(string text, ConsoleColor color = ConsoleColor.Gray);
 }
 
 internal static class IWriterExtensions
@@ -17,11 +17,35 @@ internal static class IWriterExtensions
 
 public sealed record class Output
 {
-    public IWriter? Logger { get; init; } = new ConsoleWriter();
+    // do not make constant: binary compatibility
+    public static readonly string ArtifactsPath = "CodegenAnalysis.Artifacts";
 
-    public IWriter? HtmlExporter { get; init; } = new ToFileWriter("CodegenAnalysis.Artifacts/report.html");
+    public IWriter? Logger { get; init; } = new CombinedWriter(new ConsoleWriter(), new ToFileWriter($"{ArtifactsPath}/log.txt"));
 
-    public IWriter? MarkdownExporter { get; init; } = new ToFileWriter("CodegenAnalysis.Artifacts/report.md");
+    public IWriter? HtmlExporter { get; init; } = new ToFileWriter($"{ArtifactsPath}/report.html");
+
+    public IWriter? MarkdownExporter { get; init; } = new ToFileWriter($"{ArtifactsPath}/report.md");
+}
+
+internal sealed class CombinedWriter : IWriter
+{
+    private readonly IWriter[] writers;
+    public CombinedWriter(params IWriter[] writers)
+    {
+        this.writers = writers;
+    }
+
+    public void Write(string text, ConsoleColor color)
+    {
+        foreach (var w in writers)
+            w.Write(text, color);
+    }
+
+    public void Dispose()
+    {
+        foreach (var w in writers)
+            w.Dispose();
+    }
 }
 
 internal sealed class ConsoleWriter : IWriter
@@ -46,6 +70,9 @@ internal sealed class ToFileWriter : IWriter
 
     public ToFileWriter(string path)
     {
+        var filePath = Path.GetDirectoryName(path);
+        Directory.CreateDirectory(filePath);
+        File.WriteAllText(path, "");
         this.path = path;
     }
 

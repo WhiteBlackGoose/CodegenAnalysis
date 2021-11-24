@@ -61,4 +61,23 @@ public class MarkdownTable
             sb.Append('|');
         }
     }
+
+
+    public string ToHtml()
+    {
+        var sb = new StringBuilder();
+        sb.Append("<table><tr>");
+        foreach (var h in header)
+            sb.Append("<th>").Append(h).Append("</th>");
+        sb.Append("</tr>");
+        foreach (var line in lines)
+        {
+            sb.Append("<tr>");
+            foreach (var el in line)
+                sb.Append("<td>").Append(el).Append("</td>");
+            sb.Append("</tr>");
+        }
+        sb.Append("</table>");
+        return sb.ToString();
+    }
 }

@@ -17,26 +17,33 @@ public static class CodegenBenchmarkRunner
         output ??= new();
 
         var jobs = GetJobs(type);
-        output?.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.DarkMagenta);
+        output.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.DarkMagenta);
 
         var columns = GetColumns(type).ToArray();
-        output?.Logger?.WriteLine($"\nDetected columns: \n  {string.Join("\n  ", (IEnumerable<CAColumnAttribute>)columns)}", ConsoleColor.DarkMagenta);
+        output.Logger?.WriteLine($"\nDetected columns: \n  {string.Join("\n  ", (IEnumerable<CAColumnAttribute>)columns)}", ConsoleColor.DarkMagenta);
 
         var methods = GetMethods(type);
-        output?.Logger?.WriteLine($"\nDetected methods: \n  {string.Join("\n  ", methods.Select(c => c.Info + "(" + string.Join(", ", c.Args) + ")"))}", ConsoleColor.DarkMagenta);
+        if (methods.Any())
+        {
+            output.Logger?.WriteLine($"\nDetected methods: \n  {string.Join("\n  ", methods.Select(c => c.Info + "(" + string.Join(", ", c.Args) + ")"))}", ConsoleColor.DarkMagenta);
+        }
+        else
+        {
+            output.Logger?.WriteLine($"\nNo methods with {nameof(CAInputAttribute)} were detected! Exitting...", ConsoleColor.Red);
+            return;
+        }
 
         var codegens = new SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo>(new MiTierComparer());
         var table = new MarkdownTable(new [] { "Job", "Method", "Input" }.Concat(columns.Select(c => c.ToString())));
 
-        output?.Logger?.WriteLine("");
+        output.Logger?.WriteLine("");
 
         var rowId = 0;
-        // for (int i = 0; i < jobs.Length; i++)
         foreach (var job in jobs)
         {
             foreach (var (mi, args) in methods)
             {
-                output?.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
+                output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
                 var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, args);
                 codegens[(mi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
@@ -58,19 +65,35 @@ public static class CodegenBenchmarkRunner
             }
         }
 
-        output?.Logger?.WriteLine("");
+        output.Logger?.WriteLine("");
 
         foreach (var pair in codegens)
         {
             var (mi, ci) = (pair.Key, pair.Value);
-            output?.Logger?.WriteLine("");
-            output?.Logger?.WriteLine(mi.ToString(), ConsoleColor.Blue);
-            output?.Logger?.WriteLine("    " + ci.ToString().Replace("\n", "\n    "), ConsoleColor.DarkGray);
-            output?.Logger?.WriteLine("");
+            output.Logger?.WriteLine("");
+            output.Logger?.WriteLine(mi.ToString(), ConsoleColor.Blue);
+            output.Logger?.WriteLine("    " + ci.ToString().Replace("\n", "\n    "), ConsoleColor.DarkGray);
+            output.Logger?.WriteLine("");
         }
 
-        output?.Logger?.WriteLine(table.ToString(), ConsoleColor.Blue);
+        output.Logger?.WriteLine(table.ToString(), ConsoleColor.Blue);
         
+        if (type.AttributesOfType<CAExport>().Any(c => c.Export == Export.Html))
+        {
+            if (output.HtmlExporter is null)
+                output.Logger?.WriteLine("Exporting to html was requested, but no html exporter was provided!", ConsoleColor.Red);
+            else
+                Exporters.ExportHtml(output.HtmlExporter, table, codegens);
+        }
+
+        if (type.AttributesOfType<CAExport>().Any(c => c.Export == Export.Md))
+        {
+            if (output.MarkdownExporter is null)
+                output.Logger?.WriteLine("Exporting to markdown was requested, but no markdown exporter was provided!", ConsoleColor.Red);
+            else
+                Exporters.ExportMd(output.MarkdownExporter, table, codegens);
+        }
+
         static string IntToString(int a)
             => a is 0 ? " - " : a.ToString();
 
@@ -96,14 +119,18 @@ public static class CodegenBenchmarkRunner
 
     private static IEnumerable<CAJobAttribute> GetJobs(Type type)
     {
-        return type
-                .GetCustomAttributes(typeof(CAJobAttribute), false)
-                .Select(c => (CAJobAttribute)c);
+        var res = type.AttributesOfType<CAJobAttribute>();
+        if (!res.Any())
+            return new [] { new CAJobAttribute() { Tier = CompilationTier.Tier1 } };
+        return res;
     }
 
     private static IEnumerable<CAColumnAttribute> GetColumns(Type type)
     {
-        return type.GetCustomAttributes(typeof(CAColumnAttribute), false).Select(c => (CAColumnAttribute)c);
+        var res = type.AttributesOfType<CAColumnAttribute>();
+        if (!res.Any())
+            return new [] { new CAColumnAttribute(CAColumn.Branches), new CAColumnAttribute(CAColumn.Calls), new CAColumnAttribute(CAColumn.CodegenSize) };
+        return res;
     }
 
     private static IEnumerable<(MethodInfo Info, object[] Args)> GetMethods(Type type)
@@ -111,7 +138,7 @@ public static class CodegenBenchmarkRunner
         return type
                 .GetMethods()
                 .Select(mi =>
-                    (Mi: mi, Attrs: mi.GetCustomAttributes(typeof(CAInputAttribute), false)))
+                    (Mi: mi, Attrs: mi.AttributesOfType<CAInputAttribute>()))
                 .Where(c => c.Attrs.Any())
                 .SelectMany(c =>
                     c.Attrs.Zip(Enumerable.Repeat(c.Mi, c.Attrs.Count()), (l, r) => 
@@ -122,4 +149,10 @@ public static class CodegenBenchmarkRunner
                     (Mi: c.Mi, Attrs: c.Attrs.Arguments)
                 );
     }
+
+    private static IEnumerable<T> AttributesOfType<T>(this MethodInfo mi) where T : Attribute
+        => mi.GetCustomAttributes(typeof(T)).Select(c => (T)c);
+
+    private static IEnumerable<T> AttributesOfType<T>(this Type type) where T : Attribute
+        => type.GetCustomAttributes(typeof(T)).Select(c => (T)c);
 }
