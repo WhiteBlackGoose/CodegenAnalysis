@@ -14,9 +14,6 @@ public enum CompilationTier
 
 public static partial class AssertCodegen
 {
-    
-    
-
     private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
     {
         if (!fact)
