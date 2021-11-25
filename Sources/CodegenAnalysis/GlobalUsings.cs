@@ -2,4 +2,5 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("CodegenAnalysis.Assertions")]
-[assembly: InternalsVisibleTo("CodegenAnalysis.Benchmarks")] 
+[assembly: InternalsVisibleTo("CodegenAnalysis.Benchmarks")]
+[assembly: InternalsVisibleTo("CodegenAnalysis.Tests")] 

@@ -39,7 +39,7 @@ public static class CodegenInfoResolver
         {
             var sw = new Stopwatch();
             sw.Start();
-            while (sw.ElapsedMilliseconds < 10_000 && GetByNameAndTier(key, tier) is null)
+            while (sw.ElapsedMilliseconds < 5000 && GetByNameAndTier(key, tier) is null)
             {
                 for (int i = 0; i < 1000; i++)
                     mi.Invoke(instance, arguments);

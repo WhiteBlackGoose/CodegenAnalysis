@@ -20,7 +20,7 @@ public static partial class AssertCodegen
     {
         if (!fact)
         {
-            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci.ToString(problematicLines)}");
+            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci.ToLines().Add(">>>", problematicLines)}");
         }
     }
 

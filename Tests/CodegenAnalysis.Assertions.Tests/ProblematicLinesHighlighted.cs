@@ -21,8 +21,8 @@ public class ProblematicLinesHighlighted
         }
         catch (CodegenAssertionFailedException e)
         {
-            var regex = new Regex(@">>> [\dA-z]{16} [\dA-z]* *call");
-            Assert.True(regex.Match(e.Message).Success);
+            var regex = new Regex(@">>>[\dA-z]{16} [\dA-z]* *call");
+            Assert.True(regex.Match(e.Message).Success, e.Message);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Iced.Intel;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace CodegenAnalysis;
 
@@ -12,29 +13,20 @@ public enum CompilationTier
 
 public record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPointer, CompilationTier Tier, IReadOnlyList<Instruction> Instructions)
 {
-    public override string ToString() => ToString(null);
+    public override string ToString() => ToLines().ToString();
 
-    internal unsafe string ToString(IEnumerable<int>? linesToHighlight)
+    internal unsafe Lines ToLines()
     {
         // adapted from https://github.com/icedland/iced/blob/master/src/csharp/Intel/README.md#disassemble-decode-and-format-instructions
-        var sb = new System.Text.StringBuilder();
         var formatter = new NasmFormatter();
         formatter.Options.DigitSeparator = "`";
         formatter.Options.FirstOperandCharIndex = 10;
+        
         var output = new StringOutput();
-        var linesToHighlightSet = linesToHighlight is not null ? new HashSet<int>(linesToHighlight) : null;
-        var lineId = 0;
+        var list = new List<StringBuilder>();
         foreach (var instr in Instructions)
         {
-            if (linesToHighlightSet is not null)
-            {
-                if (linesToHighlightSet.Contains(lineId))
-                    sb.Append(">>> ");
-                else
-                    sb.Append("    ");
-            }
-            lineId++;
-            
+            var sb = new StringBuilder();
             sb.Append(instr.IP.ToString("X16")).Append(" ");
             int instrLen = instr.Length;
             int byteBaseIndex = (int)(instr.IP - InstructionPointer);
@@ -50,14 +42,16 @@ public record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPoin
                 var o = output.ToStringAndReset().ToString();
                 sb.Append(o.Substring(0, o.Length - 20));
                 sb.Append(methodBase.ToString());
-                sb.Append(" ").Append('(').Append(((ulong)instr.NearBranch64).ToString("X16")).AppendLine(")");
+                sb.Append(" ").Append('(').Append(((ulong)instr.NearBranch64).ToString("X16")).Append(")");
             }
             else
             {
-                sb.AppendLine(output.ToStringAndReset());
+                sb.Append(output.ToStringAndReset());
             }
+
+            list.Add(sb);
         }
-        return sb.ToString();
+        return new(list);
     }
 
     const int HEXBYTES_COLUMN_BYTE_LENGTH = 10;
