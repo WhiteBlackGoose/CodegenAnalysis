@@ -29,7 +29,7 @@ public static class CodegenBenchmarkRunner
         }
         else
         {
-            output.Logger?.WriteLine($"\nNo methods with {nameof(CAInputAttribute)} were detected! Exitting...", ConsoleColor.Red);
+            output.Logger?.WriteLine($"\nNo methods with {nameof(CAAnalyzeAttribute)} were detected! Exitting...", ConsoleColor.Red);
             return;
         }
 
@@ -58,6 +58,7 @@ public static class CodegenBenchmarkRunner
                         CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
                         CAColumn.CodegenSize => BytesToString(ci.Bytes.Count),
                         CAColumn.StaticStackAllocations => BytesToString(CodegenAnalyzers.GetStaticStackAllocatedMemory(ci.Instructions)),
+                        CAColumn.ILSize => BytesToString(mi.GetMethodBody().GetILAsByteArray().Length),
                         var unexpected => throw new($"Internal error. Unexpected {unexpected}")
                     };
                 }
@@ -138,11 +139,11 @@ public static class CodegenBenchmarkRunner
         return type
                 .GetMethods()
                 .Select(mi =>
-                    (Mi: mi, Attrs: mi.AttributesOfType<CAInputAttribute>()))
+                    (Mi: mi, Attrs: mi.AttributesOfType<CAAnalyzeAttribute>()))
                 .Where(c => c.Attrs.Any())
                 .SelectMany(c =>
                     c.Attrs.Zip(Enumerable.Repeat(c.Mi, c.Attrs.Count()), (l, r) => 
-                        (Mi: r, Attrs: (CAInputAttribute)l)
+                        (Mi: r, Attrs: (CAAnalyzeAttribute)l)
                     )
                 )
                 .Select(c =>

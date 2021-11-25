@@ -14,15 +14,16 @@ CodegenBenchmarkRunner.Run<A>();
 
 [CAColumn(CAColumn.Branches),
  CAColumn(CAColumn.Calls), 
- CAColumn(CAColumn.CodegenSize), 
- CAColumn(CAColumn.StaticStackAllocations)]
+ CAColumn(CAColumn.StaticStackAllocations),
+ CAColumn(CAColumn.CodegenSize),
+ CAColumn(CAColumn.ILSize)]
 
 [CAExport(Export.Html),
  CAExport(Export.Md)]
 public class A
 {
-    [CAInput(3.5f)]
-    [CAInput(13.5f)]
+    [CAAnalyze(3.5f)]
+    [CAAnalyze(13.5f)]
     public static float Heavy(float a)
     {
         var b = Do1(a);
@@ -32,7 +33,7 @@ public class A
         return c + b;
     }
 
-    [CAInput(6f)]
+    [CAAnalyze(6f)]
     public static float Square(float a)
     {
         return a * a;

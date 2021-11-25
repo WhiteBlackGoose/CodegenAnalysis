@@ -3,10 +3,10 @@
 namespace CodegenAnalysis.Benchmarks;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public sealed class CAInputAttribute : Attribute
+public sealed class CAAnalyzeAttribute : Attribute
 {
     internal readonly object[] Arguments;
-    public CAInputAttribute(params object[] arguments)
+    public CAAnalyzeAttribute(params object[] arguments)
         => Arguments = arguments;
 
     public override string ToString()
@@ -44,7 +44,8 @@ public enum CAColumn
     CodegenSize,
     Calls,
     Branches,
-    StaticStackAllocations
+    StaticStackAllocations,
+    ILSize
 }
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
