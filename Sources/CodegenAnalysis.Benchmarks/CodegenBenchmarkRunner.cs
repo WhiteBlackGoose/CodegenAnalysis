@@ -33,6 +33,8 @@ public static class CodegenBenchmarkRunner
             return;
         }
 
+        object? instance = methods.Any(mi => !mi.Info.IsStatic) ? Activator.CreateInstance(type) : null;
+
         var codegens = new SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo>(new MiTierComparer());
         var table = new MarkdownTable(new [] { "Job", "Method", "Input" }.Concat(columns.Select(c => c.ToString())));
 
@@ -44,7 +46,7 @@ public static class CodegenBenchmarkRunner
             foreach (var (mi, args) in methods)
             {
                 output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
-                var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, args);
+                var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, args);
                 codegens[(mi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = mi.ToString();
