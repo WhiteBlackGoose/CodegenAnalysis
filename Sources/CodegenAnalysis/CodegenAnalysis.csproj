@@ -1,5 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <PropertyGroup>
+    <PackageId>CodegenAnalysis</PackageId>
+    <Product>CodegenAnalysis</Product>
+    <PackageTags>$(PackageTags)</PackageTags>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Iced" Version="1.15.0" />
     <PackageReference Include="IsExternalInit" Version="1.0.1">

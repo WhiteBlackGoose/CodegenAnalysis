@@ -51,7 +51,7 @@ public class InstanceMethods
     {
         var writer = new FakeWriter();
         CodegenBenchmarkRunner.Run<BenchAdd>(new Output() { Logger = writer });
-        Assert.Contains("| Int32 Add(Int32, Int32)  | 3, 5   | 5 B", writer.Output);
+        Assert.Contains("| Int32 Add(Int32, Int32)  | 3, 5", writer.Output);
     }
 
     [Fact]

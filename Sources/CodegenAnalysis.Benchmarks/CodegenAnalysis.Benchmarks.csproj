@@ -1,4 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>CodegenAnalysis.Benchmarks</PackageId>
+    <Product>CodegenAnalysis.Benchmarks</Product>
+    <PackageTags>$(PackageTags), benchmarks, report</PackageTags>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\CodegenAnalysis\CodegenAnalysis.csproj" />
   </ItemGroup>

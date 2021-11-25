@@ -1,4 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>CodegenAnalysis.Assertions</PackageId>
+    <Product>CodegenAnalysis.Assertions</Product>
+    <PackageTags>$(PackageTags), test, assert, assertions</PackageTags>
+  </PropertyGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\CodegenAnalysis\CodegenAnalysis.csproj" />
