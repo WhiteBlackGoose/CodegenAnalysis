@@ -70,14 +70,17 @@ internal sealed class ToFileWriter : IWriter
 
     public ToFileWriter(string path)
     {
-        var filePath = Path.GetDirectoryName(path);
-        Directory.CreateDirectory(filePath);
-        File.WriteAllText(path, "");
         this.path = path;
     }
 
     public void Write(string text, ConsoleColor _)
     {
+        if (!File.Exists(path))
+        {
+            var filePath = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(filePath);
+            File.WriteAllText(path, "");
+        }
         // TODO: use inner buffer instead of appending every time
         File.AppendAllText(path, text);
     }
