@@ -59,7 +59,7 @@ public class InstanceMethods
     {
         var writer = new FakeWriter();
         CodegenBenchmarkRunner.Run<BenchAdd>(new Output() { Logger = writer });
-        Assert.Contains("lea       eax,[rdx+r8]", writer.Output);
+        Assert.Contains("lea       eax,", writer.Output);
         Assert.Contains("ret", writer.Output);
     }
 
