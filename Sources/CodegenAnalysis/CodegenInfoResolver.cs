@@ -19,11 +19,11 @@ public static class CodegenInfoResolver
 
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        return GetCodegenInfo(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        return GetCodegenInfo(tier, mi, instance, args);
     }
 
-    public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
         if (mi is null)
             throw new System.ArgumentNullException(nameof(mi));
@@ -32,7 +32,7 @@ public static class CodegenInfoResolver
             return res;
         if (tier is CompilationTier.Default)
         {
-            mi.Invoke(null, arguments);
+            mi.Invoke(instance, arguments);
             Thread.Sleep(100);
         }
         else if (tier is CompilationTier.Tier1)
@@ -42,7 +42,7 @@ public static class CodegenInfoResolver
             while (sw.ElapsedMilliseconds < 10_000 && GetByNameAndTier(key, tier) is null)
             {
                 for (int i = 0; i < 1000; i++)
-                    mi.Invoke(null, arguments);
+                    mi.Invoke(instance, arguments);
             }
             return GetByNameAndTier(key, tier)
                 ?? throw new RequestedTierNotFoundException(tier);

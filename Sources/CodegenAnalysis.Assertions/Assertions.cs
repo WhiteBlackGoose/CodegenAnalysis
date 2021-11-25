@@ -26,56 +26,56 @@ public static partial class AssertCodegen
 
     public static void LessThan(int expectedLengthBytes, CompilationTier tier, Expr func)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(func);
-        LessThan(expectedLengthBytes, tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(func);
+        LessThan(expectedLengthBytes, tier, mi, instance, args);
     }
-    public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, arguments);
         AssertFact(ci.Bytes.Count <= expectedLength, expectedLength, ci.Bytes.Count, ci, "Expected to be smaller");
     }
 
 
     public static void NoCalls(CompilationTier tier, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        NoCalls(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        NoCalls(tier, mi, instance, args);
     }
-    public static void NoCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void NoCalls(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        HasInRange(tier, null, 0, CodegenAnalyzers.GetCalls, "calls", mi, arguments);
+        HasInRange(tier, null, 0, CodegenAnalyzers.GetCalls, "calls", mi, instance, arguments);
     }
 
 
     public static void NoBranches(CompilationTier tier, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        NoBranches(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        NoBranches(tier, mi, instance, args);
     }
-    public static void NoBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void NoBranches(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        HasInRange(tier, null, 0, CodegenAnalyzers.GetBranches, "branches", mi, arguments);
+        HasInRange(tier, null, 0, CodegenAnalyzers.GetBranches, "branches", mi, instance, arguments);
     }
 
     public static void HasCalls(CompilationTier tier, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasCalls(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasCalls(tier, mi, instance, args);
     }
-    public static void HasCalls(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void HasCalls(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        HasInRange(tier, 1, null, CodegenAnalyzers.GetCalls, "calls", mi, arguments);
+        HasInRange(tier, 1, null, CodegenAnalyzers.GetCalls, "calls", mi, instance, arguments);
     }
 
 
     public static void HasBranches(CompilationTier tier, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasBranches(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasBranches(tier, mi, instance, args);
     }
-    public static void HasBranches(CompilationTier tier, MethodInfo? mi, params object?[] arguments)
+    public static void HasBranches(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        HasInRange(tier, 1, null, CodegenAnalyzers.GetBranches, "branches", mi, arguments);
+        HasInRange(tier, 1, null, CodegenAnalyzers.GetBranches, "branches", mi, instance, arguments);
     }
 
 
@@ -100,14 +100,14 @@ public static partial class AssertCodegen
 
     internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasInRange(tier, from, to, pred, comment, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        HasInRange(tier, from, to, pred, comment, mi, instance, args);
     }
 
     internal static void NumberInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, int?> pred, string comment, Expr expr)
     {
-        var (mi, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, args);
+        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, args);
         var message = $"Expected to contain ";
         var count = pred(ci.Instructions);
         if (from is { } aFrom)
@@ -124,9 +124,9 @@ public static partial class AssertCodegen
             ci, null, message);
     }
 
-    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, MethodInfo? mi, params object?[] arguments)
+    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, MethodInfo? mi, object? instance, params object?[] arguments)
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, arguments);
+        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, arguments);
         var problematicLines = pred(ci.Instructions);
         var count = problematicLines.Count();
         var message = $"Expected to contain ";
