@@ -27,7 +27,7 @@ public class A
     
     [CAAnalyze(3.5f)]
     [CAAnalyze(13.5f)]
-    [CASubject("Do1")]
+    [CASubject(typeof(A), "Do1", new [] { typeof(float) })]
     public static float Heavy(float a)
     {
         var b = Do1(a);

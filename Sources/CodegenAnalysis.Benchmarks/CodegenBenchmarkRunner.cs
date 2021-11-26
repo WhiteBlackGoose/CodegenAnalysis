@@ -36,32 +36,38 @@ public static class CodegenBenchmarkRunner
         object? instance = methods.Any(mi => !mi.Info.IsStatic) ? Activator.CreateInstance(type) : null;
 
         var codegens = new SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo>(new MiTierComparer());
-        var table = new MarkdownTable(new [] { "Job", "Method", "Input" }.Concat(columns.Select(c => c.ToString())));
+        var table = new MarkdownTable(new [] { "Job", "Method" }.Concat(columns.Select(c => c.ToString())));
 
         output.Logger?.WriteLine("");
 
         var rowId = 0;
         foreach (var job in jobs)
         {
-            foreach (var (mi, args) in methods)
+            foreach (var (mi, inputs) in methods)
             {
                 var actualMi = GetFinalSubject(mi);
                 if (actualMi == mi)
-                    output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
+                    output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", inputs)} {job}...");
                 else
-                    output.Logger?.WriteLine($"Investigating {mi} (subject: {actualMi}) {string.Join(", ", args)} {job}...");
-                var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, args);
+                    output.Logger?.WriteLine($"Investigating {mi} (subject: {actualMi}) {string.Join(", ", inputs)} {job}...");
+
+                CodegenInfo? ci = null;
+                foreach (var input in inputs)
+                {
+                    ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, input.Arguments);    
+                }
                 if (actualMi != mi)
-                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier) ?? throw new("Oh no!");
+                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier) ?? throw new(actualMi.ToString());
+                if (ci is null)
+                    throw new(string.Join(", ", inputs));
 
                 codegens[(actualMi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
-                table[rowId, 1] = mi.ToString()!;
-                table[rowId, 2] = string.Join(", ", args);
+                table[rowId, 1] = actualMi.ToString()!;
                 
                 for (int i = 0; i < columns.Length; i++)
                 {
-                    table[rowId, i + 3] = columns[i].Column switch
+                    table[rowId, i + 2] = columns[i].Column switch
                     {
                         CAColumn.Branches => IntToString(CodegenAnalyzers.GetBranches(ci.Instructions).Count()),
                         CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
@@ -153,21 +159,13 @@ public static class CodegenBenchmarkRunner
         return new CAOptionsAttribute() { VisualizeBackwardJumps = false };
     }
 
-    private static IEnumerable<(MethodInfo Info, object[] Args)> GetMethods(Type type)
+    private static IEnumerable<(MethodInfo Info, IEnumerable<CAAnalyzeAttribute> Args)> GetMethods(Type type)
     {
         return type
                 .GetMethods()
                 .Select(mi =>
                     (Mi: mi, Attrs: mi.AttributesOfType<CAAnalyzeAttribute>()))
-                .Where(c => c.Attrs.Any())
-                .SelectMany(c =>
-                    c.Attrs.Zip(Enumerable.Repeat(c.Mi, c.Attrs.Count()), (l, r) => 
-                        (Mi: r, Attrs: (CAAnalyzeAttribute)l)
-                    )
-                )
-                .Select(c =>
-                    (Mi: c.Mi, Attrs: c.Attrs.Arguments)
-                );
+                .Where(pair => pair.Attrs.Any());
     }
 
     private static IEnumerable<T> AttributesOfType<T>(this MethodInfo mi) where T : Attribute
@@ -176,47 +174,47 @@ public static class CodegenBenchmarkRunner
     private static IEnumerable<T> AttributesOfType<T>(this Type type) where T : Attribute
         => type.GetCustomAttributes(typeof(T)).Select(c => (T)c);
 
+    private static T? RealSingleOrDefault<T>(this IEnumerable<T> seq)
+    {
+        var alreadyFilled = false;
+        T? res = default(T);
+        foreach (var e in seq)
+        {
+            if (alreadyFilled)
+                return default(T);
+            res = e;
+            alreadyFilled = true;
+        }
+        return res;
+    }
+
     private static MethodInfo GetFinalSubject(MethodInfo mi)
     {
         var subject = mi.AttributesOfType<CASubjectAttribute>().SingleOrDefault();
         if (subject is null)
             return mi;
 
-        var (type, name) = GetTypeName(subject.methodName);
-        type ??= mi.DeclaringType;
-        if (type is null)
-            throw new("???");
+        var type = subject.holdingType;
+        var name = subject.methodName;
         var methods = type.GetMethods().Where(mi => mi.Name == name);
 
         if (!methods.Any())
             throw new($"{name} not found. Type has: {string.Join(", ", methods.Select(m => m.Name))}");
-        var theOnly = methods.SingleOrDefault();
-        if (theOnly is not null)
-            return theOnly;
 
-        var methodsGeneric = methods.Where(mi => SeqsCoincide(mi.GetGenericArguments(), subject.typeArgs));
+        var methodsGeneric = methods.Where(mi => mi.GetGenericArguments().Length == subject.typeArgs.Length);
         if (!methodsGeneric.Any())
             throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
-        var theOnlyGeneric = methodsGeneric.SingleOrDefault();
+        var theOnlyGeneric = methodsGeneric.RealSingleOrDefault();
         if (theOnlyGeneric is not null)
-            return theOnlyGeneric;
+            return subject.typeArgs.Length > 0 ? theOnlyGeneric.MakeGenericMethod(subject.typeArgs) : theOnlyGeneric;
 
         var methodsGenericParameters = methods.Where(mi => SeqsCoincide(mi.GetParameters().Select(p => p.ParameterType), subject.parameterTypes));
         if (!methodsGenericParameters.Any())
             throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
-        var theOnlyGenericParameters = methodsGenericParameters.SingleOrDefault();
+        var theOnlyGenericParameters = methodsGenericParameters.RealSingleOrDefault();
         if (theOnlyGenericParameters is not null)
             return theOnlyGenericParameters;
         throw new($"Too many: {string.Join(", ", theOnlyGenericParameters)}");
-
-        static (Type? Type, string Name) GetTypeName(string methodName)
-        {
-            var i = methodName.LastIndexOf('.');
-            if (i == -1)
-                return (null, methodName);
-            var (type, method) = (methodName.Substring(0, i), methodName.Substring(i + 1));
-            return (Type.GetType(type), method);
-        }
 
         static bool SeqsCoincide<T>(IEnumerable<T> a, IEnumerable<T> b)
         {

@@ -81,15 +81,21 @@ public sealed class CASubjectAttribute : Attribute
     internal readonly string methodName;
     internal readonly Type[] typeArgs;
     internal readonly Type[] parameterTypes;
+    internal readonly Type holdingType;
 
-    public CASubjectAttribute(string methodName, Type[] typeArgs, params Type[] parameterTypes)
+    public CASubjectAttribute(Type holdingType, string methodName, Type[]? typeArgs, Type[]? parameterTypes)
     {
         this.methodName = methodName;
-        this.typeArgs = typeArgs;
-        this.parameterTypes = parameterTypes;
+        this.typeArgs = typeArgs ?? Array.Empty<Type>();
+        this.parameterTypes = parameterTypes ?? Array.Empty<Type>();
+        this.holdingType = holdingType;
     }
 
-    public CASubjectAttribute(string methodName, params Type[] parameterTypes) : this(methodName, Array.Empty<Type>(), parameterTypes)
+    public CASubjectAttribute(Type holdingType, string methodName, Type[]? parameterTypes) : this(holdingType, methodName, Array.Empty<Type>(), parameterTypes)
+    {
+    }
+
+    public CASubjectAttribute(Type holdingType, string methodName) : this(holdingType, methodName, null, null)
     {
     }
 }
