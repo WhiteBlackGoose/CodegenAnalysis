@@ -91,7 +91,7 @@ public class SubjectTests
     {
         var writer = new FakeWriter();
         CodegenBenchmarkRunner.Run<GenericMethod>(new Output() { Logger = writer });
-        Assert.Contains("| (Tier = Tier1)  | System.String MyGetType[Int32]()  |  -        | 1      | 36", writer.Output);
+        Assert.Contains("| (Tier = Tier1)  | System.String MyGetType[Int32]()  |  -        | 1      | 3", writer.Output);
     }
 
 #if DEBUG
