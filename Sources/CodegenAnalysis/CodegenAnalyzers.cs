@@ -41,4 +41,43 @@ public static class CodegenAnalyzers
         }
         return 0;
     }
+
+    public static IReadOnlyList<(int From, int To)> GetBackwardJumps(IReadOnlyList<Instruction> instructions)
+        => GetJumps(instructions).Where(p => p.To != int.MinValue && p.To < p.From).ToList();
+
+    public static IReadOnlyList<(int From, int To)> GetJumps(IReadOnlyList<Instruction> instructions)
+    {
+        var list = new List<(int, int)>();        
+
+        for (int i = 0; i < instructions.Count; i++)
+            // TODO
+            if (instructions[i].Code.ToString().StartsWith("J"))
+                list.Add((i, FindInstructionByIP(instructions, instructions[i].NearBranch64)));
+
+        // throw new(list.Count + $"{string.Join(", ", list)}\n{string.Join("\n", instructions.Select(c => c.Code))}");
+
+        return list;
+
+
+        static int FindInstructionByIP(IReadOnlyList<Instruction> instructions, ulong ip)
+        {
+            var a = 0;
+            var b = instructions.Count - 1;
+            if (instructions[a].IP > ip)
+                return int.MinValue;
+            if (instructions[b].IP < ip)
+                return int.MaxValue;
+            while (b - a > 1)
+            {
+                var m = (a + b) / 2;
+                if (instructions[m].IP > ip)
+                    b = m;
+                else if (instructions[m].IP < ip)
+                    a = m;
+                else
+                    return m;
+            }
+            return a;
+        }
+    }
 }

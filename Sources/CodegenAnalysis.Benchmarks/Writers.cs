@@ -67,19 +67,22 @@ internal sealed class ConsoleWriter : IWriter
 internal sealed class ToFileWriter : IWriter
 {
     private readonly string path;
+    private bool created;
 
     public ToFileWriter(string path)
     {
         this.path = path;
+        created = false;
     }
 
     public void Write(string text, ConsoleColor _)
     {
-        if (!File.Exists(path))
+        if (!created)
         {
             var filePath = Path.GetDirectoryName(path);
             Directory.CreateDirectory(filePath);
             File.WriteAllText(path, "");
+            created = true;
         }
         // TODO: use inner buffer instead of appending every time
         File.AppendAllText(path, text);

@@ -84,14 +84,14 @@ internal sealed class Lines
                 lines[from][i] = Merge(symbolHorizontal, lines[from][i]);
                 lines[to][i] = Merge(symbolHorizontal, lines[to][i]);
             }
-            lines[to][padding - 1] = '>';
+            lines[to][padding - 1] = symbolArrow;
         }
 
         return this;
 
         bool HasNoVerticals(int from, int to, int colId)
         {
-            for (int i = from; i <= to; i++)
+            for (int i = Math.Min(from, to); i <= Math.Max(from, to); i++)
             {
                 if (lines[i][colId] == symbolVertical)
                     return false;
@@ -107,6 +107,10 @@ internal sealed class Lines
                 return symbolVertical;
             if (a == ' ') return b;
             if (b == ' ') return a;
+            if (a == symbolVertical && b == symbolVertical)
+                return symbolVertical;
+            if (Are(a, b, symbolUpRight, symbolVertical))
+                return symbolUpDownRight;
             // TODO: add other symbols
             throw new($"Unsupported merge of {a} and {b}");
 

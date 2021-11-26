@@ -9,7 +9,7 @@ namespace CodegenAnalysis.Benchmarks;
 
 internal static class Exporters
 {
-    public static void ExportHtml(IWriter html, MarkdownTable table, SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo> codegens)
+    public static void ExportHtml(IWriter html, MarkdownTable table, SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo> codegens, CAOptionsAttribute options)
     {
         html.Write("<html><body>\n");
 
@@ -24,13 +24,13 @@ internal static class Exporters
         {
             var ((mi, tier), code) = (pair.Key, pair.Value);
             html.Write($"<h3>{mi}: {tier}</h3>");
-            html.Write($"<div style=\"\"><pre>{code}</pre></div>");
+            html.Write($"<div style=\"\"><pre>{CiToString(code, options)}</pre></div>");
         }
 
         html.Write("</body></html>");
     }
 
-    public static void ExportMd(IWriter md, MarkdownTable table, SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo> codegens)
+    public static void ExportMd(IWriter md, MarkdownTable table, SortedDictionary<(MethodInfo, CompilationTier), CodegenInfo> codegens, CAOptionsAttribute options)
     {
         md.WriteLine("# Codegen analysis report");
         md.WriteLine($"*{SuperiourDateTimeNow()}*");
@@ -43,10 +43,19 @@ internal static class Exporters
         {
             var ((mi, tier), code) = (pair.Key, pair.Value);
             md.WriteLine($"### {mi}: {tier}");
-            md.WriteLine($"```assembly\n{code}\n```");
+            md.WriteLine($"```assembly\n{CiToString(code, options)}\n```");
         }
     }
 
     private static string SuperiourDateTimeNow()
         => $"{DateTime.Now.ToUniversalTime().ToString("yyyy-MM-dd HH:mm")} UTC";
+
+
+    internal static string CiToString(CodegenInfo ci, CAOptionsAttribute options)
+    {
+        var lines = ci.ToLines();
+        if (options.VisualizeBackwardJumps)
+            lines.DrawArrows(CodegenAnalyzers.GetBackwardJumps(ci.Instructions));
+        return lines.ToString();
+    }
 }

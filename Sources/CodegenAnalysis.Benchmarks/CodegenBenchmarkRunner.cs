@@ -49,7 +49,7 @@ public static class CodegenBenchmarkRunner
                 var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, args);
                 codegens[(mi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
-                table[rowId, 1] = mi.ToString();
+                table[rowId, 1] = mi.ToString()!;
                 table[rowId, 2] = string.Join(", ", args);
                 
                 for (int i = 0; i < columns.Length; i++)
@@ -60,7 +60,7 @@ public static class CodegenBenchmarkRunner
                         CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
                         CAColumn.CodegenSize => BytesToString(ci.Bytes.Count),
                         CAColumn.StaticStackAllocations => BytesToString(CodegenAnalyzers.GetStaticStackAllocatedMemory(ci.Instructions)),
-                        CAColumn.ILSize => BytesToString(mi.GetMethodBody().GetILAsByteArray().Length),
+                        CAColumn.ILSize => BytesToString(mi.GetMethodBody()!.GetILAsByteArray()!.Length),
                         var unexpected => throw new($"Internal error. Unexpected {unexpected}")
                     };
                 }
@@ -70,12 +70,14 @@ public static class CodegenBenchmarkRunner
 
         output.Logger?.WriteLine("");
 
+        var options = GetOptions(type);
+
         foreach (var pair in codegens)
         {
             var (mi, ci) = (pair.Key, pair.Value);
             output.Logger?.WriteLine("");
             output.Logger?.WriteLine(mi.ToString(), ConsoleColor.Blue);
-            output.Logger?.WriteLine("    " + ci.ToString().Replace("\n", "\n    "), ConsoleColor.DarkGray);
+            output.Logger?.WriteLine("    " + Exporters.CiToString(ci, options).Replace("\n", "\n    "), ConsoleColor.DarkGray);
             output.Logger?.WriteLine("");
         }
 
@@ -86,7 +88,7 @@ public static class CodegenBenchmarkRunner
             if (output.HtmlExporter is null)
                 output.Logger?.WriteLine("Exporting to html was requested, but no html exporter was provided!", ConsoleColor.Red);
             else
-                Exporters.ExportHtml(output.HtmlExporter, table, codegens);
+                Exporters.ExportHtml(output.HtmlExporter, table, codegens, options);
         }
 
         if (type.AttributesOfType<CAExport>().Any(c => c.Export == Export.Md))
@@ -94,7 +96,7 @@ public static class CodegenBenchmarkRunner
             if (output.MarkdownExporter is null)
                 output.Logger?.WriteLine("Exporting to markdown was requested, but no markdown exporter was provided!", ConsoleColor.Red);
             else
-                Exporters.ExportMd(output.MarkdownExporter, table, codegens);
+                Exporters.ExportMd(output.MarkdownExporter, table, codegens, options);
         }
 
         static string IntToString(int a)
@@ -134,6 +136,14 @@ public static class CodegenBenchmarkRunner
         if (!res.Any())
             return new [] { new CAColumnAttribute(CAColumn.Branches), new CAColumnAttribute(CAColumn.Calls), new CAColumnAttribute(CAColumn.CodegenSize) };
         return res;
+    }
+
+    private static CAOptionsAttribute GetOptions(Type type)
+    {
+        var res = type.AttributesOfType<CAOptionsAttribute>();
+        if (res.Any())
+            return res.Single();
+        return new CAOptionsAttribute() { VisualizeBackwardJumps = false };
     }
 
     private static IEnumerable<(MethodInfo Info, object[] Args)> GetMethods(Type type)

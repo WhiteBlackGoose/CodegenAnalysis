@@ -63,3 +63,13 @@ public enum Export
     Html,
     Md
 }
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public sealed class CAOptionsAttribute : Attribute
+{
+    public bool VisualizeBackwardJumps { get; set; }
+    public CAOptionsAttribute()
+    {
+
+    }
+}

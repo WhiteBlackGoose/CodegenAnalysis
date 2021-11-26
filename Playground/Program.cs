@@ -9,8 +9,8 @@ using System.Runtime.CompilerServices;
 
 CodegenBenchmarkRunner.Run<A>();
 
-[CAJob(Tier = CompilationTier.Default),
- CAJob(Tier = CompilationTier.Tier1)]
+
+[CAJob(Tier = CompilationTier.Tier1)]
 
 [CAColumn(CAColumn.Branches),
  CAColumn(CAColumn.Calls), 
@@ -20,8 +20,11 @@ CodegenBenchmarkRunner.Run<A>();
 
 [CAExport(Export.Html),
  CAExport(Export.Md)]
+
+[CAOptions(VisualizeBackwardJumps = true)]
 public class A
 {
+    /*
     [CAAnalyze(3.5f)]
     [CAAnalyze(13.5f)]
     public static float Heavy(float a)
@@ -49,5 +52,21 @@ public class A
     public static float Aaa(float h)
     {
         return h * h * h;
+    }*/
+
+    [CAAnalyze(3)]
+    public static float Sum(float a)
+    {
+        var r = 0f;
+        for (int i = 0; i < 100; i++)
+        {
+            while (a > 0)
+            {
+                a -= 1f;
+                r += a;
+            }
+            a = r > 0 ? 10f : 11f;
+        }
+        return r;
     }
 }
