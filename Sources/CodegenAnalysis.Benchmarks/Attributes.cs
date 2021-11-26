@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace CodegenAnalysis.Benchmarks;
 
@@ -71,5 +72,24 @@ public sealed class CAOptionsAttribute : Attribute
     public CAOptionsAttribute()
     {
 
+    }
+}
+
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+public sealed class CASubjectAttribute : Attribute
+{
+    internal readonly string methodName;
+    internal readonly Type[] typeArgs;
+    internal readonly Type[] parameterTypes;
+
+    public CASubjectAttribute(string methodName, Type[] typeArgs, params Type[] parameterTypes)
+    {
+        this.methodName = methodName;
+        this.typeArgs = typeArgs;
+        this.parameterTypes = parameterTypes;
+    }
+
+    public CASubjectAttribute(string methodName, params Type[] parameterTypes) : this(methodName, Array.Empty<Type>(), parameterTypes)
+    {
     }
 }

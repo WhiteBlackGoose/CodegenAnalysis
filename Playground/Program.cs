@@ -24,9 +24,10 @@ CodegenBenchmarkRunner.Run<A>();
 [CAOptions(VisualizeBackwardJumps = true)]
 public class A
 {
-    /*
+    
     [CAAnalyze(3.5f)]
     [CAAnalyze(13.5f)]
+    [CASubject("Do1")]
     public static float Heavy(float a)
     {
         var b = Do1(a);
@@ -34,12 +35,6 @@ public class A
         if (a > 10)
             c += Aaa(a);
         return c + b;
-    }
-
-    [CAAnalyze(6f)]
-    public static float Square(float a)
-    {
-        return a * a;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -52,7 +47,14 @@ public class A
     public static float Aaa(float h)
     {
         return h * h * h;
-    }*/
+    }
+
+    /*
+    [CAAnalyze(6f)]
+    public static float Square(float a)
+    {
+        return a * a;
+    }
 
     [CAAnalyze(3)]
     public static float Sum(float a)
@@ -68,5 +70,5 @@ public class A
             a = r > 0 ? 10f : 11f;
         }
         return r;
-    }
+    }*/
 }

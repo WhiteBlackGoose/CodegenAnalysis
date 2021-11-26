@@ -14,7 +14,7 @@ public static class CodegenInfoResolver
         => dict.TryGetValue(key, out var res) ? res : default(TValue);
 #endif
 
-    private static CodegenInfo? GetByNameAndTier(MethodBase name, CompilationTier tier)
+    internal static CodegenInfo? GetByNameAndTier(MethodBase name, CompilationTier tier)
         => EntryPointsListener.Codegens.GetValueOrDefault(name)?.SingleOrDefault(c => c.Value.Tier == tier)?.Value;
 
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, Expr expr)

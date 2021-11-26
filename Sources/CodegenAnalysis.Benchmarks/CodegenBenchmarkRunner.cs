@@ -45,9 +45,16 @@ public static class CodegenBenchmarkRunner
         {
             foreach (var (mi, args) in methods)
             {
-                output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
+                var actualMi = GetFinalSubject(mi);
+                if (actualMi == mi)
+                    output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", args)} {job}...");
+                else
+                    output.Logger?.WriteLine($"Investigating {mi} (subject: {actualMi}) {string.Join(", ", args)} {job}...");
                 var ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, args);
-                codegens[(mi, job.Tier)] = ci; // overwriting the last to get a richer result
+                if (actualMi != mi)
+                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier) ?? throw new("Oh no!");
+
+                codegens[(actualMi, job.Tier)] = ci; // overwriting the last to get a richer result
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = mi.ToString()!;
                 table[rowId, 2] = string.Join(", ", args);
@@ -168,4 +175,54 @@ public static class CodegenBenchmarkRunner
 
     private static IEnumerable<T> AttributesOfType<T>(this Type type) where T : Attribute
         => type.GetCustomAttributes(typeof(T)).Select(c => (T)c);
+
+    private static MethodInfo GetFinalSubject(MethodInfo mi)
+    {
+        var subject = mi.AttributesOfType<CASubjectAttribute>().SingleOrDefault();
+        if (subject is null)
+            return mi;
+
+        var (type, name) = GetTypeName(subject.methodName);
+        type ??= mi.DeclaringType;
+        if (type is null)
+            throw new("???");
+        var methods = type.GetMethods().Where(mi => mi.Name == name);
+
+        if (!methods.Any())
+            throw new($"{name} not found. Type has: {string.Join(", ", methods.Select(m => m.Name))}");
+        var theOnly = methods.SingleOrDefault();
+        if (theOnly is not null)
+            return theOnly;
+
+        var methodsGeneric = methods.Where(mi => SeqsCoincide(mi.GetGenericArguments(), subject.typeArgs));
+        if (!methodsGeneric.Any())
+            throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
+        var theOnlyGeneric = methodsGeneric.SingleOrDefault();
+        if (theOnlyGeneric is not null)
+            return theOnlyGeneric;
+
+        var methodsGenericParameters = methods.Where(mi => SeqsCoincide(mi.GetParameters().Select(p => p.ParameterType), subject.parameterTypes));
+        if (!methodsGenericParameters.Any())
+            throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
+        var theOnlyGenericParameters = methodsGenericParameters.SingleOrDefault();
+        if (theOnlyGenericParameters is not null)
+            return theOnlyGenericParameters;
+        throw new($"Too many: {string.Join(", ", theOnlyGenericParameters)}");
+
+        static (Type? Type, string Name) GetTypeName(string methodName)
+        {
+            var i = methodName.LastIndexOf('.');
+            if (i == -1)
+                return (null, methodName);
+            var (type, method) = (methodName.Substring(0, i), methodName.Substring(i + 1));
+            return (Type.GetType(type), method);
+        }
+
+        static bool SeqsCoincide<T>(IEnumerable<T> a, IEnumerable<T> b)
+        {
+            if (a.Count() != b.Count())
+                return false;
+            return a.Zip(b, (a, b) => (a, b)).All(c => c.Item1.Equals(c.Item2));
+        }
+    }
 }
