@@ -126,4 +126,48 @@ public class SubjectTests
         CodegenBenchmarkRunner.Run<TheRightOverload>(new Output() { Logger = writer });
         Assert.Contains("| (Tier = Tier1)  | Single Triple(Single)  |  -        |  -     |", writer.Output);
     }
+
+#if DEBUG
+    [CAJob(Tier = CompilationTier.Default)]
+#else
+    [CAJob(Tier = CompilationTier.Tier1)]
+#endif
+    public class TheRightOverloadGeneric
+    {
+#pragma warning disable CS8605 // Unboxing a possibly null value.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+        [CAAnalyze]
+        [CASubject(typeof(TheRightOverloadGeneric), "Triple", new[] { typeof(float) }, new[] { typeof(float), typeof(int) })]
+        public float DoThing()
+        {
+            return
+            Triple<int>(3, 5)
+            + Triple(3f, 5)
+            + Triple<float>(3f, 5);
+        }
+
+        public T Triple<T>(T a, int b)
+        {
+            if (typeof(T) == typeof(float))
+                return (T) (object) ((float) (object) a * 3f);
+            if (typeof(T) == typeof(int))
+                return (T)(object)((int)(object)a * 3);
+            return default!;
+        }
+
+        public float Triple(float a, int _)
+        {
+            return a * 3;
+        }
+#pragma warning restore CS8605 // Unboxing a possibly null value.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+    }
+
+    [Fact]
+    public void TheRightOverloadGenericTest()
+    {
+        var writer = new FakeWriter();
+        CodegenBenchmarkRunner.Run<TheRightOverloadGeneric>(new Output() { Logger = writer });
+        Assert.Contains("| (Tier = Tier1)  | Single Triple[Single](Single, Int32)", writer.Output);
+    }
 }
