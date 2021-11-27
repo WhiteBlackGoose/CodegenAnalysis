@@ -7,10 +7,13 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+
 CodegenBenchmarkRunner.Run<A>();
+// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.SomeHeavyMethod(3, 5)));
 
 
-[CAJob(Tier = CompilationTier.Tier1)]
+[CAJob(Tier = CompilationTier.Tier1),
+ CAJob(Tier = CompilationTier.Default)]
 
 [CAColumn(CAColumn.Branches),
  CAColumn(CAColumn.Calls), 
@@ -49,26 +52,27 @@ public class A
         return h * h * h;
     }
 
-    /*
-    [CAAnalyze(6f)]
-    public static float Square(float a)
+    [CAAnalyze(13.5f)]
+    public static float AaaLoop(float h)
     {
-        return a * a;
+        while (h < 0)
+        {
+            h -= 5f;
+        }
+        return h;
     }
 
-    [CAAnalyze(3)]
-    public static float Sum(float a)
+    public static int SomeHeavyMethod(int a, int b)
     {
-        var r = 0f;
-        for (int i = 0; i < 100; i++)
-        {
-            while (a > 0)
-            {
-                a -= 1f;
-                r += a;
-            }
-            a = r > 0 ? 10f : 11f;
-        }
-        return r;
-    }*/
+        a += b;
+        b += a;
+        b += a / b;
+        b += b / a;
+        a *= a;
+        if (a < 0) a = 5;
+        if (a < -5)
+            throw new();
+        return a - b;
+    }
 }
+

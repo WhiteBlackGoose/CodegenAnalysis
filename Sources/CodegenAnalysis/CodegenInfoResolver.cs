@@ -1,4 +1,6 @@
-﻿using System.Collections.Concurrent;
+﻿using HonkSharp.Functional;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,15 +26,29 @@ public static class CodegenInfoResolver
     }
 
     public static CodegenInfo GetCodegenInfo(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
+        => GetCodegenInfoSilent(tier, mi, instance, arguments)
+            .Switch(
+                ci => ci,
+                ex => throw ex
+            );
+
+    public static Either<CodegenInfo, Exception> GetCodegenInfoSilent(CompilationTier tier, MethodInfo? mi, object? instance, object?[] arguments)
     {
         if (mi is null)
-            throw new System.ArgumentNullException(nameof(mi));
+            return new ArgumentNullException(nameof(mi));
         var key = mi!;
         if (GetByNameAndTier(key, tier) is { } res)
             return res;
         if (tier is CompilationTier.Default)
         {
-            mi.Invoke(instance, arguments);
+            try
+            {
+                mi.Invoke(instance, arguments);
+            }
+            catch (Exception e)
+            {
+                return e;
+            }
             Thread.Sleep(100);
         }
         else if (tier is CompilationTier.Tier1)
@@ -41,16 +57,26 @@ public static class CodegenInfoResolver
             sw.Start();
             while (sw.ElapsedMilliseconds < 5000 && GetByNameAndTier(key, tier) is null)
             {
-                for (int i = 0; i < 1000; i++)
-                    mi.Invoke(instance, arguments);
+                try
+                {
+                    for (int i = 0; i < 1000; i++)
+                        mi.Invoke(instance, arguments);
+                }
+                catch (Exception e)
+                {
+                    return e;
+                }
             }
-            return GetByNameAndTier(key, tier)
-                ?? throw new RequestedTierNotFoundException(tier);
+            if (GetByNameAndTier(key, tier) is { } valid)
+                return valid;
+            return new RequestedTierNotFoundException(tier);
         }
-        return EntryPointsListener.Codegens
+        var value = EntryPointsListener.Codegens
                 .GetValueOrDefault(key)
                 ?.SingleOrDefault(c => c.Value.Tier == tier)
-                ?.Value
-                ?? throw new RequestedMethodNotCapturedForJittingException(mi.Name);
+                ?.Value;
+        if (value is null)
+            return new RequestedMethodNotCapturedForJittingException(mi.Name);
+        return value;
     }
 }

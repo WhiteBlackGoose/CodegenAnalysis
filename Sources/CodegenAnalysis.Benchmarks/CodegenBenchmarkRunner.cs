@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
+using HonkSharp.Functional;
+using HonkSharp.Fluency;
 
 namespace CodegenAnalysis.Benchmarks;
 
@@ -41,44 +43,96 @@ public static class CodegenBenchmarkRunner
         output.Logger?.WriteLine("");
 
         var rowId = 0;
+        var errorNumber = 1;
+        var notFoundErrors = 0;
         foreach (var job in jobs)
         {
             foreach (var (mi, inputs) in methods)
             {
-                var actualMi = GetFinalSubject(mi);
+                Exception? error = null;
+                CodegenInfo? ci = null;
+                var actualMiAu = GetFinalSubject(mi);
+                if (!actualMiAu.Is<MethodInfo>(out var actualMi))
+                {
+                    error = (Exception)actualMiAu;
+                    goto fillingTable;
+                }
+
                 if (actualMi == mi)
                     output.Logger?.WriteLine($"Investigating {mi} {string.Join(", ", inputs)} {job}...");
                 else
                     output.Logger?.WriteLine($"Investigating {mi} (subject: {actualMi}) {string.Join(", ", inputs)} {job}...");
 
-                CodegenInfo? ci = null;
                 foreach (var input in inputs)
                 {
-                    ci = CodegenInfoResolver.GetCodegenInfo(job.Tier, mi, instance, input.Arguments);    
+                    var ciAu = CodegenInfoResolver.GetCodegenInfoSilent(job.Tier, mi, instance, input.Arguments);
+                    if (ciAu.Is<CodegenInfo>(out var newCi))
+                    {
+                        ci = newCi;
+                    }
+                    else
+                    {
+                        error = NotJittedOrFound(actualMi);
+                        goto fillingTable;
+                    }
                 }
                 if (actualMi != mi)
-                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier) ?? throw new(actualMi.ToString());
+                {
+                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier);
+                    if (ci is null)
+                    {
+                        error = NotJittedOrFound(actualMi);
+                        goto fillingTable;
+                    }
+                }
                 if (ci is null)
-                    throw new(string.Join(", ", inputs));
+                {
+                    error = NotJittedOrFound(actualMi);
+                    goto fillingTable;
+                }
 
                 codegens[(actualMi, job.Tier)] = ci; // overwriting the last to get a richer result
+                
+                fillingTable:
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = actualMi.ToString()!;
-                
                 for (int i = 0; i < columns.Length; i++)
                 {
-                    table[rowId, i + 2] = columns[i].Column switch
-                    {
-                        CAColumn.Branches => IntToString(CodegenAnalyzers.GetBranches(ci.Instructions).Count()),
-                        CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
-                        CAColumn.CodegenSize => BytesToString(ci.Bytes.Count),
-                        CAColumn.StaticStackAllocations => BytesToString(CodegenAnalyzers.GetStaticStackAllocatedMemory(ci.Instructions)),
-                        CAColumn.ILSize => BytesToString(mi.GetMethodBody()!.GetILAsByteArray()!.Length),
-                        var unexpected => throw new($"Internal error. Unexpected {unexpected}")
-                    };
+                    if (error is null)
+                        table[rowId, i + 2] = columns[i].Column switch
+                        {
+                            CAColumn.Branches => IntToString(CodegenAnalyzers.GetBranches(ci.Instructions).Count()),
+                            CAColumn.Calls => IntToString(CodegenAnalyzers.GetCalls(ci.Instructions).Count()),
+                            CAColumn.CodegenSize => BytesToString(ci.Bytes.Count),
+                            CAColumn.StaticStackAllocations => BytesToString(CodegenAnalyzers.GetStaticStackAllocatedMemory(ci.Instructions)),
+                            CAColumn.ILSize => BytesToString(mi.GetMethodBody()!.GetILAsByteArray()!.Length),
+                            var unexpected => throw new($"Internal error. Unexpected {unexpected}")
+                        };
+                    else
+                        table[rowId, i + 2] = $"NA ({errorNumber})";
                 }
                 rowId++;
+
+                if (error is not null)
+                {
+                    output.Logger?.WriteLine($"NA ({errorNumber}): {error.Message}", ConsoleColor.Red);
+                    errorNumber++;
+                }
             }
+        }
+
+        output.Logger?.WriteLine("");
+
+        if (notFoundErrors > 0)
+        {
+            output.Logger?.WriteLine($"{notFoundErrors} 'Not found' errors were detected. Here are possible reasons:", ConsoleColor.DarkYellow);
+            output.Logger?.WriteLine($@"
+  - The configuration is Debug. Make sure to switch to release if you need {CompilationTier.Tier1}+.
+  - The method is annotated with AggressiveOptimization but you requested {CompilationTier.Default} tier.
+  - The method is annotated with NoOptimization but you requested {CompilationTier.Tier1}.
+  - The method contains a loop but you requested {CompilationTier.Default} tier.
+  - The method has {nameof(CASubjectAttribute)} and the subject method is inlined into the outer method.
+            ", ConsoleColor.DarkYellow);
         }
 
         output.Logger?.WriteLine("");
@@ -122,6 +176,16 @@ public static class CodegenBenchmarkRunner
                 null => " ? ",
                 { } other => $"{other} B"
             };
+
+        Exception NotJittedOrFound(MethodInfo mi)
+        {
+            notFoundErrors++;
+            if (EntryPointsListener.Codegens.TryGetValue(mi, out var allFound))
+            {
+                return new Exception($"For the requested tier only tiers {allFound.Select(c => c.Value.Tier).Pipe(", ".Join)} were found");
+            }
+            return new Exception("No method for the requested tier was found.");
+        }
     }
 
 
@@ -156,7 +220,7 @@ public static class CodegenBenchmarkRunner
         var res = type.AttributesOfType<CAOptionsAttribute>();
         if (res.Any())
             return res.Single();
-        return new CAOptionsAttribute() { VisualizeBackwardJumps = false };
+        return new CAOptionsAttribute() { VisualizeBackwardJumps = true };
     }
 
     private static IEnumerable<(MethodInfo Info, IEnumerable<CAAnalyzeAttribute> Args)> GetMethods(Type type)
@@ -188,7 +252,7 @@ public static class CodegenBenchmarkRunner
         return res;
     }
 
-    private static MethodInfo GetFinalSubject(MethodInfo mi)
+    private static Either<MethodInfo, Exception> GetFinalSubject(MethodInfo mi)
     {
         var subject = mi.AttributesOfType<CASubjectAttribute>().SingleOrDefault();
         if (subject is null)
@@ -199,22 +263,22 @@ public static class CodegenBenchmarkRunner
         var methods = type.GetMethods().Where(mi => mi.Name == name);
 
         if (!methods.Any())
-            throw new($"{name} not found. Type has: {string.Join(", ", methods.Select(m => m.Name))}");
+            return new Exception($"{name} not found. Type has: {string.Join(", ", methods.Select(m => m.Name))}");
 
         var methodsGeneric = methods.Where(mi => mi.GetGenericArguments().Length == subject.typeArgs.Length);
         if (!methodsGeneric.Any())
-            throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
+            return new Exception($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
         var theOnlyGeneric = methodsGeneric.RealSingleOrDefault();
         if (theOnlyGeneric is not null)
             return subject.typeArgs.Length > 0 ? theOnlyGeneric.MakeGenericMethod(subject.typeArgs) : theOnlyGeneric;
 
         var methodsGenericParameters = methods.Where(mi => SeqsCoincide(mi.GetParameters().Select(p => p.ParameterType), subject.parameterTypes));
         if (!methodsGenericParameters.Any())
-            throw new($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
+            return new Exception($"{name} with type args not found. Type has: {string.Join(", ", methods)}");
         var theOnlyGenericParameters = methodsGenericParameters.RealSingleOrDefault();
         if (theOnlyGenericParameters is not null)
             return theOnlyGenericParameters;
-        throw new($"Too many: {string.Join(", ", theOnlyGenericParameters)}");
+        return new Exception($"Too many: {string.Join(", ", theOnlyGenericParameters)}");
 
         static bool SeqsCoincide<T>(IEnumerable<T> a, IEnumerable<T> b)
         {

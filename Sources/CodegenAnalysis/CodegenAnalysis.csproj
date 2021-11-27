@@ -7,6 +7,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="HonkSharp" Version="1.0.3" />
     <PackageReference Include="Iced" Version="1.15.0" />
     <PackageReference Include="IsExternalInit" Version="1.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
