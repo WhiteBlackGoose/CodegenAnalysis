@@ -96,6 +96,9 @@ public static class CodegenBenchmarkRunner
                 fillingTable:
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = actualMi.ToString()!;
+
+                if (ci is null) throw new Exception("Internal bug #1.");
+
                 for (int i = 0; i < columns.Length; i++)
                 {
                     if (error is null)
@@ -284,7 +287,7 @@ public static class CodegenBenchmarkRunner
         {
             if (a.Count() != b.Count())
                 return false;
-            return a.Zip(b, (a, b) => (a, b)).All(c => c.Item1.Equals(c.Item2));
+            return a.Zip(b, (a, b) => (a, b)).All(c => c.Item1 is null && c.Item2 is null || c.Item1 is not null && c.Item1.Equals(c.Item2));
         }
     }
 }

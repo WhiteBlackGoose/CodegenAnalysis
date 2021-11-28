@@ -80,7 +80,7 @@ internal sealed class ToFileWriter : IWriter
         if (!created)
         {
             var filePath = Path.GetDirectoryName(path);
-            Directory.CreateDirectory(filePath);
+            Directory.CreateDirectory(filePath ?? throw new("Internal bug #2."));
             File.WriteAllText(path, "");
             created = true;
         }

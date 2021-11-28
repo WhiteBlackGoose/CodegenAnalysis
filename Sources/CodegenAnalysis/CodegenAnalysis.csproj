@@ -4,7 +4,10 @@
     <PackageId>CodegenAnalysis</PackageId>
     <Product>CodegenAnalysis</Product>
     <PackageTags>$(PackageTags)</PackageTags>
+    
   </PropertyGroup>
+
+  
   
   <ItemGroup>
     <PackageReference Include="HonkSharp" Version="1.0.3" />

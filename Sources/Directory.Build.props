@@ -8,15 +8,29 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>0.0.4-alpha</Version>
+    <Version>0.0.6-alpha</Version>
     <Authors>WhiteBlackGoose</Authors>
     <Copyright>© WhiteBlackGoose 2021</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Working on benchmarks</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAssertions</RepositoryUrl>
     <PackageTags>performance, jit, codegen</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  
+    <PackageIcon>logo1t.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="..\..\logo1t.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
