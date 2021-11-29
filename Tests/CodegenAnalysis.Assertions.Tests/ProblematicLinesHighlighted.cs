@@ -16,7 +16,8 @@ public class ProblematicLinesHighlighted
     {
         try
         {
-            AssertCodegen.NoCalls(CompilationTier.Default, () => Ducks());
+            CodegenInfo.Obtain(() => Ducks(), CompilationTier.Default)
+                .ShouldHaveCalls(0);
             Assert.True(false, "Expected to throw");
         }
         catch (CodegenAssertionFailedException e)

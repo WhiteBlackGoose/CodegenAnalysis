@@ -65,7 +65,7 @@ public static class CodegenBenchmarkRunner
 
                 foreach (var input in inputs)
                 {
-                    var ciAu = CodegenInfoResolver.GetCodegenInfoSilent(job.Tier, mi, instance, input.Arguments);
+                    var ciAu = CodegenInfo.ObtainSilent(job.Tier, mi, instance, input.Arguments);
                     if (ciAu.Is<CodegenInfo>(out var newCi))
                     {
                         ci = newCi;
@@ -78,7 +78,7 @@ public static class CodegenBenchmarkRunner
                 }
                 if (actualMi != mi)
                 {
-                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier);
+                    ci = CodegenInfo.GetByNameAndTier(actualMi, job.Tier);
                     if (ci is null)
                     {
                         error = NotJittedOrFound(actualMi);

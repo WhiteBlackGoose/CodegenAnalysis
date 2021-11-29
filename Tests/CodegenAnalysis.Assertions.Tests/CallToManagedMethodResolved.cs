@@ -24,14 +24,14 @@ public class CallToManagedMethodResolved
     [Fact]
     public void CallNameResolved()
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Heavy(3f));
+        var ci = CodegenInfo.Obtain(() => Heavy(3f), CompilationTier.Tier1);
         Assert.Contains("call      Single Do1(Single)", ci.ToString());
     }
 
     [Fact]
     public void JmpNameResolved()
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Heavy(3f));
+        var ci = CodegenInfo.Obtain(() => Heavy(3f), CompilationTier.Tier1);
         Assert.Contains("jmp       Single AddN(Single, Single)", ci.ToString());
     }
 
@@ -56,8 +56,8 @@ public class CallToManagedMethodResolved
     [Fact]
     public void JbeNameResolved()
     {
-        var ci = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Ducks(3.1f));
-        CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => Ducks(2.9f));
+        var ci = CodegenInfo.Obtain(() => Ducks(3.1f), CompilationTier.Tier1);
+        CodegenInfo.Obtain(() => Ducks(2.9f), CompilationTier.Tier1);
         Assert.Contains("jmp       Single Quack(Single)", ci.ToString());
         Assert.Contains("jmp       Single Quack()", ci.ToString());
     }

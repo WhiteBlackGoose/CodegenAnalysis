@@ -17,7 +17,8 @@ public class StaticStackAlloc
     [Fact]
     public void NoAlloc()
     {
-        AssertCodegen.StackAllocatesInRange(0, 0, CompilationTier.Tier1, () => Add(3, 5));
+        CodegenInfo.Obtain(() => Add(3, 5))
+            .ShouldStaticStackAllocate(s => s is null or 0);
     }
 
     static int AddComplicated(int a, int b)
@@ -33,6 +34,7 @@ public class StaticStackAlloc
     [Fact]
     public void Alloc()
     {
-        AssertCodegen.StackAllocatesInRange(32, 80, CompilationTier.Tier1, () => AddComplicated(3, 5));
+        CodegenInfo.Obtain(() => AddComplicated(3, 5))
+            .ShouldStaticStackAllocate(s => s is >= 32 and <= 80);
     }
 }

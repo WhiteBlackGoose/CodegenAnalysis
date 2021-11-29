@@ -23,14 +23,16 @@ public class Calls
     [Fact]
     public void Test3()
     {
-        AssertCodegen.NoCalls(CompilationTier.Default, () => SomeMethod(4, 5));
+        CodegenInfo.Obtain(() => SomeMethod(4, 5), CompilationTier.Default)
+            .ShouldHaveCalls(0);
     }
 
     [Fact]
     public void Test4()
     {
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            AssertCodegen.NoCalls(CompilationTier.Default, () => SomeHeavyMethod(4, 5))
+            CodegenInfo.Obtain(() => SomeHeavyMethod(4, 5), CompilationTier.Default)
+                .ShouldHaveCalls(0)
         );
     }
 
@@ -49,16 +51,19 @@ public class Calls
     [Fact]
     public void NotDevirtTier0()
     {
-        AssertCodegen.HasCalls(CompilationTier.Default, () => Twice(new B()));
-        AssertCodegen.HasCallsAtLeast(1, CompilationTier.Default, () => Twice(new B()));
+        CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Default)
+            .ShouldHaveCalls(c => c >= 0)
+            .ShouldHaveCalls(c => c >= 1);
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            AssertCodegen.HasCallsAtLeast(2, CompilationTier.Default, () => Twice(new B()))
+            CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Default)
+                .ShouldHaveCalls(c => c >= 2)
         );
     }
 
     [Fact]
     public void DevirtTier1()
     {
-        AssertCodegen.NoCalls(CompilationTier.Tier1, () => Twice(new B()));
+        CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Tier1)
+            .ShouldHaveCalls(0);
     }
 }

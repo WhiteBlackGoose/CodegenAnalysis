@@ -1,4 +1,5 @@
-﻿using Iced.Intel;
+﻿using HonkSharp.Laziness;
+using Iced.Intel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +12,27 @@ public enum CompilationTier
     Tier1
 }
 
-public record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPointer, CompilationTier Tier, IReadOnlyList<Instruction> Instructions)
+public partial record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPointer, CompilationTier Tier, IReadOnlyList<Instruction> Instructions)
 {
     public override string ToString() => ToLines().ToString();
+
+
+    private LazyPropertyA<IReadOnlyList<int>> branches;
+    public IReadOnlyList<int> Branches => branches.GetValue(@this => CodegenAnalyzers.GetBranches(@this.Instructions).ToList(), this);
+
+
+    private LazyPropertyA<IReadOnlyList<int>> calls;
+    public IReadOnlyList<int> Calls => calls.GetValue(@this => CodegenAnalyzers.GetCalls(@this.Instructions).ToList(), this);
+
+
+    private LazyPropertyA<IReadOnlyList<(int From, int To)>> jumps;
+    public IReadOnlyList<(int From, int To)> Jumps => jumps.GetValue(@this => CodegenAnalyzers.GetJumps(@this.Instructions).ToList(), this);
+
+
+    private LazyPropertyA<int?> staticStackAllocatedMemory;
+    public int? StaticStackAllocatedMemory => staticStackAllocatedMemory.GetValue(@this => CodegenAnalyzers.GetStaticStackAllocatedMemory(@this.Instructions), this);
+
+    public int Size => Bytes.Count;
 
     internal unsafe Lines ToLines()
     {
