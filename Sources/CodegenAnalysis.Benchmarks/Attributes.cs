@@ -1,12 +1,19 @@
-﻿using System;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+using System;
 using System.Reflection;
 
 namespace CodegenAnalysis.Benchmarks;
 
+/// <summary>
+/// Put this on the methods to analyze. If you need
+/// to cover multiple branches, put them such that
+/// their inputs force multiple branches.
+/// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public sealed class CAAnalyzeAttribute : Attribute
 {
     internal readonly object[] Arguments;
+
     public CAAnalyzeAttribute(params object[] arguments)
         => Arguments = arguments;
 
@@ -14,6 +21,10 @@ public sealed class CAAnalyzeAttribute : Attribute
         => $"({string.Join(", ", Arguments)})";
 }
 
+/// <summary>
+/// Adds a job to work on.
+/// Currently it only specifies the compilation tier.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class CAJobAttribute : Attribute
 {
@@ -27,6 +38,9 @@ public sealed class CAJobAttribute : Attribute
         => $"(Tier = {Tier})";
 }
 
+/// <summary>
+/// Adds a column to the output table.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class CAColumnAttribute : Attribute
 {
@@ -40,15 +54,44 @@ public sealed class CAColumnAttribute : Attribute
         => $"{Column}";
 }
 
+/// <summary>
+/// Columns for the output table.
+/// </summary>
 public enum CAColumn
 {
+    /// <summary>
+    /// Codegen size in bytes
+    /// </summary>
     CodegenSize,
+
+    /// <summary>
+    /// The number of calls
+    /// </summary>
     Calls,
+
+    /// <summary>
+    /// The number of branches
+    /// </summary>
     Branches,
+
+    /// <summary>
+    /// The amount of statically
+    /// stack allocated memory
+    /// (excluding dynamic allocation).
+    /// </summary>
     StaticStackAllocations,
+
+    /// <summary>
+    /// The size of the method in MSIL
+    /// in bytes.
+    /// </summary>
     ILSize
 }
 
+/// <summary>
+/// Export to file.
+/// No exports by default.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class CAExport : Attribute
 {
@@ -59,12 +102,25 @@ public sealed class CAExport : Attribute
     }
 }
 
+/// <summary>
+/// Type of export.
+/// </summary>
 public enum Export
 {
+    /// <summary>
+    /// To html - make sure to set your <see cref="Output.HtmlExporter"/>
+    /// </summary>
     Html,
+
+    /// <summary>
+    /// To markdown - make sure to set your <see cref="Output.MarkdownExporter"/>
+    /// </summary>
     Md
 }
 
+/// <summary>
+/// Other settings of benchmark runner.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class CAOptionsAttribute : Attribute
 {
@@ -75,6 +131,9 @@ public sealed class CAOptionsAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Redirects the codegen analysis to another method.
+/// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
 public sealed class CASubjectAttribute : Attribute
 {

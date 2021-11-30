@@ -7,8 +7,9 @@ using HonkSharp.Fluency;
 
 namespace CodegenAnalysis.Benchmarks;
 
-
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public static class CodegenBenchmarkRunner
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 {
     /// <summary>
     /// Runs the benchmarks on the given type. Takes
@@ -51,6 +52,7 @@ public static class CodegenBenchmarkRunner
         else
         {
             output.Logger?.WriteLine($"\nNo methods with {nameof(CAAnalyzeAttribute)} were detected! Exitting...", ConsoleColor.Red);
+            output.Dispose();
             return null;
         }
 
@@ -188,6 +190,7 @@ public static class CodegenBenchmarkRunner
                 Exporters.ExportMd(output.MarkdownExporter, table, codegens, options);
         }
 
+        output.Dispose();
 
         return new(Codegens: codegens, Table: table);
 

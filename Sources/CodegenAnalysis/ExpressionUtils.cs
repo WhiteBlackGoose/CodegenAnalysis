@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace CodegenAnalysis;
 
-public static class ExpressionUtils
+internal static class ExpressionUtils
 {
     public static (MethodInfo MethodInfo, object? Instance, object?[] Arguments) LambdaToMethodInfo(Expression<Action> expr)
     {

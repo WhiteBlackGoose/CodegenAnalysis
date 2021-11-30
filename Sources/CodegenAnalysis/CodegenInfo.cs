@@ -6,9 +6,23 @@ using System.Text;
 
 namespace CodegenAnalysis;
 
+/// <summary>
+/// Phase of compilation to capture.
+/// </summary>
 public enum CompilationTier
 {
+    /// <summary>
+    /// This includes tier0, MinOpt - the one
+    /// used by the debug configuration, and 
+    /// unspecified (for old runtimes).
+    /// </summary>
     Default,
+
+    /// <summary>
+    /// This includes tier1 and aggressive
+    /// optimization, as well as the only phase
+    /// functions containing loops get in.
+    /// </summary>
     Tier1
 }
 
@@ -32,6 +46,7 @@ public enum CompilationTier
 /// </param>
 public partial record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint InstructionPointer, CompilationTier Tier, IReadOnlyList<Instruction> Instructions)
 {
+    /// <inheritdoc/>
     public override string ToString() => ToLines().ToString();
 
 

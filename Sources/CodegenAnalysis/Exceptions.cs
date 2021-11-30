@@ -2,7 +2,10 @@
 
 namespace CodegenAnalysis;
 
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public sealed class RequestedTierNotFoundException : Exception
+
 {
     internal RequestedTierNotFoundException(CompilationTier tier)
         : base($"Tier {tier} not found. Try toggling the build configuration to Release. Make sure that "
@@ -20,3 +23,5 @@ public sealed class RequestedMethodNotCapturedForJittingException : Exception
     internal RequestedMethodNotCapturedForJittingException(string method)
         : base($"Method {method} wasn't JIT-ted or JIT-ted too early. Make sure you don't run it before the test.") { }
 }
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

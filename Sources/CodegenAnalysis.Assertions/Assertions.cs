@@ -9,13 +9,17 @@ namespace CodegenAnalysis.Assertions;
 
 #if !NET5_0_OR_GREATER
 [AttributeUsage(AttributeTargets.Parameter)]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public sealed class CallerArgumentExpressionAttribute : Attribute
 {
     public CallerArgumentExpressionAttribute(string argName) { }
 }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #endif
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public static partial class AssertCodegen
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 {
     private static CodegenInfo Should(this CodegenInfo ci, string msg, Func<CodegenInfo, bool> fact, Func<CodegenInfo, string> prettifyOnFailure)
     {
@@ -106,9 +110,6 @@ public static partial class AssertCodegen
     /// is not larger than the expected upper limit.
     /// </summary>
     /// <returns>The instance. Use it for fluent assertions.</returns>
-    /// <param name="byteSizeUpperLimit"></param>
-    /// <param name="expr"></param>
-    /// <returns></returns>
     public static CodegenInfo ShouldBeNotLargerThan(this CodegenInfo ci, int byteSizeUpperLimit, [CallerArgumentExpression("byteSizeUpperLimit")] string expr = "")
         => ci.ShouldBeOfSize(b => b <= byteSizeUpperLimit, expr);
 }

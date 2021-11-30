@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+using System;
 using System.IO;
 using System.Text;
 
@@ -15,9 +16,13 @@ internal static class IWriterExtensions
         => writer.Write(text + "\n", color);
 }
 
-public sealed record class Output
+public sealed record class Output : IDisposable
 {
     // do not make constant: binary compatibility
+    /// <summary>
+    /// The default path for exporters and loggers.
+    /// If you want to change it, change the exporter/logger.
+    /// </summary>
     public static readonly string ArtifactsPath = "CodegenAnalysis.Artifacts";
 
     public IWriter? Logger { get; init; } = new CombinedWriter(new ConsoleWriter(), new ToFileWriter($"{ArtifactsPath}/log.txt"));
@@ -25,6 +30,13 @@ public sealed record class Output
     public IWriter? HtmlExporter { get; init; } = new ToFileWriter($"{ArtifactsPath}/report.html");
 
     public IWriter? MarkdownExporter { get; init; } = new ToFileWriter($"{ArtifactsPath}/report.md");
+
+    public void Dispose()
+    {
+        Logger?.Dispose();
+        HtmlExporter?.Dispose();
+        MarkdownExporter?.Dispose();
+    }
 }
 
 internal sealed class CombinedWriter : IWriter
