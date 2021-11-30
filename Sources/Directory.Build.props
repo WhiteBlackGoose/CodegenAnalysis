@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>0.0.6-alpha</Version>
+    <Version>0.0.7-alpha</Version>
     <Authors>WhiteBlackGoose</Authors>
     <Copyright>© WhiteBlackGoose 2021</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -20,6 +20,8 @@
   
     <PackageIcon>logo1t.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+  
+    <DocumentationFile>bin/$(Configuration)/$(TargetFramework)/$(MSBuildProjectName).xml</DocumentationFile>
   </PropertyGroup>
   
   <ItemGroup>

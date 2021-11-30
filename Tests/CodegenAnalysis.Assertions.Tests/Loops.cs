@@ -15,7 +15,8 @@ public class Loops
     [Fact]
     public void LoopsGetTier1()
     {
-        AssertCodegen.HasBranchesAtLeast(1, CompilationTier.Tier1, () => LoopHHH(3));
-        AssertCodegen.HasBranchesNoMoreThan(2, CompilationTier.Tier1, () => LoopHHH(3));
+        CodegenInfo.Obtain(() => LoopHHH(3))
+            .ShouldHaveBranches(b => b >= 1)
+            .ShouldHaveBranches(b => b <= 2);
     }
 }

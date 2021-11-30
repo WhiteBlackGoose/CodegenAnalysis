@@ -7,14 +7,34 @@ using HonkSharp.Fluency;
 
 namespace CodegenAnalysis.Benchmarks;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 public static class CodegenBenchmarkRunner
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 {
-    public static void Run<T>(Output? output = null)
+    /// <summary>
+    /// Runs the benchmarks on the given type. Takes
+    /// public methods only. Will try to run the
+    /// parameterless constructor if there is at least
+    /// one instance public method.
+    /// 
+    /// The methods to run need to be annotated with <see cref="CAAnalyzeAttribute"/>.
+    /// </summary>
+    /// <returns>Null in case of failure</returns>
+    public static BenchmarkResult? Run<T>(Output? output = null)
     {
-        Run(typeof(T), output);
+        return Run(typeof(T), output);
     }
 
-    public static void Run(Type type, Output? output = null)
+    /// <summary>
+    /// Runs the benchmarks on the given type. Takes
+    /// public methods only. Will try to run the
+    /// parameterless constructor if there is at least
+    /// one instance public method.
+    /// 
+    /// The methods to run need to be annotated with <see cref="CAAnalyzeAttribute"/>.
+    /// </summary>
+    /// <returns>Null in case of failure</returns>
+    public static BenchmarkResult? Run(Type type, Output? output = null)
     {
         output ??= new();
 
@@ -32,7 +52,8 @@ public static class CodegenBenchmarkRunner
         else
         {
             output.Logger?.WriteLine($"\nNo methods with {nameof(CAAnalyzeAttribute)} were detected! Exitting...", ConsoleColor.Red);
-            return;
+            output.Dispose();
+            return null;
         }
 
         object? instance = methods.Any(mi => !mi.Info.IsStatic) ? Activator.CreateInstance(type) : null;
@@ -65,7 +86,7 @@ public static class CodegenBenchmarkRunner
 
                 foreach (var input in inputs)
                 {
-                    var ciAu = CodegenInfoResolver.GetCodegenInfoSilent(job.Tier, mi, instance, input.Arguments);
+                    var ciAu = CodegenInfo.ObtainSilent(job.Tier, mi, instance, input.Arguments);
                     if (ciAu.Is<CodegenInfo>(out var newCi))
                     {
                         ci = newCi;
@@ -78,7 +99,7 @@ public static class CodegenBenchmarkRunner
                 }
                 if (actualMi != mi)
                 {
-                    ci = CodegenInfoResolver.GetByNameAndTier(actualMi, job.Tier);
+                    ci = CodegenInfo.GetByNameAndTier(actualMi, job.Tier);
                     if (ci is null)
                     {
                         error = NotJittedOrFound(actualMi);
@@ -168,6 +189,11 @@ public static class CodegenBenchmarkRunner
             else
                 Exporters.ExportMd(output.MarkdownExporter, table, codegens, options);
         }
+
+        output.Dispose();
+
+        return new(Codegens: codegens, Table: table);
+
 
         static string IntToString(int a)
             => a is 0 ? " - " : a.ToString();

@@ -17,7 +17,8 @@ public class Branches
     [Fact]
     public void BranchElimination()
     {
-        AssertCodegen.NoBranches(CompilationTier.Tier1, () => SmartThing());
+        CodegenInfo.Obtain(() => SmartThing())
+            .ShouldHaveBranches(0);
     }
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -32,6 +33,7 @@ public class Branches
     [Fact]
     public void NoBranchElimination()
     {
-        AssertCodegen.HasBranches(CompilationTier.Default, () => StupidThing());
+        CodegenInfo.Obtain(() => StupidThing(), CompilationTier.Default)
+            .ShouldHaveBranches(b => b > 0);
     }
 }

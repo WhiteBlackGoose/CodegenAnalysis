@@ -5,11 +5,17 @@ using System.Linq;
 
 namespace CodegenAnalysis;
 
+/// <summary>
+/// API for analyzing codegen.
+/// </summary>
 public static class CodegenAnalyzers
 {
     // TODO
     private static readonly Func<Instruction, bool> isBranch = i => i.Code.ToString().StartsWith("J") && !i.Code.ToString().StartsWith("Jmp");
 
+    /// <summary>
+    /// Similar to <see cref="CodegenInfo.Branches"/>
+    /// </summary>
     public static IEnumerable<int> GetBranches(IReadOnlyList<Instruction> instructions)
     {
         return instructions
@@ -21,6 +27,9 @@ public static class CodegenAnalyzers
     // TODO
     private static readonly Func<Instruction, bool> isCall = i => i.Code.ToString().StartsWith("Call");
 
+    /// <summary>
+    /// Similar to <see cref="CodegenInfo.Calls"/>
+    /// </summary>
     public static IEnumerable<int> GetCalls(IReadOnlyList<Instruction> instructions)
     {
         return instructions
@@ -29,6 +38,9 @@ public static class CodegenAnalyzers
             .Select(p => p.Index);
     }
 
+    /// <summary>
+    /// Similar to <see cref="CodegenInfo.StaticStackAllocatedMemory"/>
+    /// </summary>
     public static int? GetStaticStackAllocatedMemory(IReadOnlyList<Instruction> instructions)
     {
         if (instructions.Count < 1)
@@ -42,9 +54,15 @@ public static class CodegenAnalyzers
         return 0;
     }
 
+    /// <summary>
+    /// Gets backward jumps (normally loops).
+    /// </summary>
     public static IReadOnlyList<(int From, int To)> GetBackwardJumps(IReadOnlyList<Instruction> instructions)
         => GetJumps(instructions).Where(p => p.To != int.MinValue && p.To < p.From).ToList();
 
+    /// <summary>
+    /// Similar to <see cref="CodegenInfo.Jumps"/>
+    /// </summary>
     public static IReadOnlyList<(int From, int To)> GetJumps(IReadOnlyList<Instruction> instructions)
     {
         var list = new List<(int, int)>();        

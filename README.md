@@ -30,8 +30,8 @@ static int AddAndMul(int a, int b) => a + b * a;
 
 ...
 
-var codegenInfo = CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => AddAndMul(3, 5));
-Console.WriteLine(codegenInfo);
+var ci = CodegenInfo.Obrain(() => AddAndMul(3, 5));
+Console.WriteLine(ci);
 ```
 Output:
 ```assembly
@@ -51,7 +51,7 @@ Output:
 using CodegenAssertions;
 using Xunit;
 
-public class CodegenSizeQuickJit
+public class CodegenSizeTest
 {
     public static int SomeMethod(int a, int b)
         => a + b;
@@ -59,7 +59,8 @@ public class CodegenSizeQuickJit
     [Fact]
     public void Test1()
     {
-        AssertCodegen.CodegenLessThan(20, CompilationTier.Tier0, () => SomeMethod(4, 5));
+        CodegenInfo.Obtain(() => SomeMethod(4, 5), CompilationTier.Tier1)
+            .ShouldBeNotLargerThan(20);
     }
 }
 ```
@@ -86,13 +87,15 @@ public class Tests
     [Fact]
     public void NotDevirtTier0()
     {
-        AssertCodegen.CodegenHasCalls(CompilationTier.Tier0, () => Twice(new B()));
+        CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Default)
+            .ShouldHaveCalls(c => c >= 1);
     }
 
     [Fact]
     public void DevirtTier1()
     {
-        AssertCodegen.CodegenDoesNotHaveCalls(CompilationTier.Tier1, () => Twice(new B()));
+        CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Tier1)
+            .ShouldHaveCalls(0);
     }
 }
 ```
@@ -112,7 +115,8 @@ public class Tests
     [Fact]
     public void BranchElimination()
     {
-        AssertCodegen.CodegenDoesNotHaveBranches(CompilationTier.Tier1, () => SmartThing());
+        CodegenInfo.Obtain(() => SmartThing())
+            .ShouldHaveBranches(0);
     }
 
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -126,7 +130,8 @@ public class Tests
     [Fact]
     public void NoBranchElimination()
     {
-        AssertCodegen.CodegenHasBranches(CompilationTier.Default, () => StupidThing());
+        CodegenInfo.Obtain(() => StupidThing(), CompilationTier.Default)
+            .ShouldHaveBranches(b => b > 0);
     }
 ```
 
@@ -149,8 +154,8 @@ CodegenBenchmarkRunner.Run<A>();
  CAExport(Export.Md)]
 public class A
 {
-    [CAInput(3.5f)]
-    [CAInput(13.5f)]
+    [CAAnalyze(3.5f)]
+    [CAAnalyze(13.5f)]
     public static float Heavy(float a)
     {
         var b = Do1(a);
@@ -160,7 +165,7 @@ public class A
         return c + b;
     }
 
-    [CAInput(6f)]
+    [CAAnalyze(6f)]
     public static float Square(float a)
     {
         return a * a;

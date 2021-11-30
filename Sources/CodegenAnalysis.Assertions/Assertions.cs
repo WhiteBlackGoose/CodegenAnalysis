@@ -3,145 +3,113 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace CodegenAnalysis.Assertions;
 
-public static partial class AssertCodegen
+#if !NET5_0_OR_GREATER
+[AttributeUsage(AttributeTargets.Parameter)]
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+public sealed class CallerArgumentExpressionAttribute : Attribute
 {
-    private static void AssertFact<T>(bool fact, T expected, T actual, CodegenInfo ci, string comment)
-    {
-        if (!fact)
-        {
-            throw new ExpectedActualException<T>(expected, actual, $"{comment}\n\nCodegen:\n\n{ci}");
-        }
-    }
+    public CallerArgumentExpressionAttribute(string argName) { }
+}
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+#endif
 
-    private static void AssertFact(bool fact, CodegenInfo ci, IEnumerable<int>? problematicLines, string comment)
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+public static partial class AssertCodegen
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+{
+    private static CodegenInfo Should(this CodegenInfo ci, string msg, Func<CodegenInfo, bool> fact, Func<CodegenInfo, string> prettifyOnFailure)
     {
-        if (!fact)
-        {
-            throw new CodegenAssertionFailedException($"{comment}\n\nCodegen:\n\n{ci.ToLines().Add(">>>", problematicLines ?? Enumerable.Empty<int>())}");
-        }
-    }
-
-    public static void LessThan(int expectedLengthBytes, CompilationTier tier, Expr func)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(func);
-        LessThan(expectedLengthBytes, tier, mi, instance, args);
-    }
-    public static void LessThan(int expectedLength, CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, arguments);
-        AssertFact(ci.Bytes.Count <= expectedLength, expectedLength, ci.Bytes.Count, ci, "Expected to be smaller");
+        if (fact(ci))
+            return ci;
+        throw new CodegenAssertionFailedException($"Failed. {msg}\n\nCodegen:\n{prettifyOnFailure(ci)}");
     }
 
 
-    public static void NoCalls(CompilationTier tier, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        NoCalls(tier, mi, instance, args);
-    }
-    public static void NoCalls(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        HasInRange(tier, null, 0, CodegenAnalyzers.GetCalls, "calls", mi, instance, arguments);
-    }
+    /// <summary>
+    /// Check if the readonly list of branches matches your expectation.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveBranches(this CodegenInfo ci, Func<IReadOnlyList<int>, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.Should($"Expected specific branches ({expr}). Got {ci.Branches.Count} branches instead.", ci => predicate(ci.Branches), ci => ci.ToLines().Add(">>>", ci.Branches).ToString());
+
+    /// <summary>
+    /// Check if the number of branches matches your expectation.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveBranches(this CodegenInfo ci, Func<int, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.ShouldHaveBranches(list => predicate(list.Count), expr);
+
+    /// <summary>
+    /// Check if there is as many branches as expected.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveBranches(this CodegenInfo ci, int amount, [CallerArgumentExpression("amount")] string expr = "")
+        => ci.ShouldHaveBranches(i => i.Count == amount, expr);
 
 
-    public static void NoBranches(CompilationTier tier, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        NoBranches(tier, mi, instance, args);
-    }
-    public static void NoBranches(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        HasInRange(tier, null, 0, CodegenAnalyzers.GetBranches, "branches", mi, instance, arguments);
-    }
 
-    public static void HasCalls(CompilationTier tier, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasCalls(tier, mi, instance, args);
-    }
-    public static void HasCalls(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        HasInRange(tier, 1, null, CodegenAnalyzers.GetCalls, "calls", mi, instance, arguments);
-    }
+    /// <summary>
+    /// Check if the readonly list of calls matches your expectation.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveCalls(this CodegenInfo ci, Func<IReadOnlyList<int>, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.Should($"Expected specific calls ({expr}). Got {ci.Calls.Count} calls instead.", ci => predicate(ci.Calls), ci => ci.ToLines().Add(">>>", ci.Calls).ToString());
 
+    /// <summary>
+    /// Check if the number of calls matches your expectation.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveCalls(this CodegenInfo ci, Func<int, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.ShouldHaveCalls(list => predicate(list.Count), expr);
 
-    public static void HasBranches(CompilationTier tier, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasBranches(tier, mi, instance, args);
-    }
-    public static void HasBranches(CompilationTier tier, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        HasInRange(tier, 1, null, CodegenAnalyzers.GetBranches, "branches", mi, instance, arguments);
-    }
+    /// <summary>
+    /// Check if there is as many branches as expected.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldHaveCalls(this CodegenInfo ci, int amount, [CallerArgumentExpression("amount")] string expr = "")
+        => ci.ShouldHaveCalls(i => i.Count == amount, expr);
 
 
-    public static void HasBranchesAtLeast(int atLeast, CompilationTier tier, Expr expr)
-        => HasInRange(tier, atLeast, null, CodegenAnalyzers.GetBranches, "branches", expr);
+    /// <summary>
+    /// Check if the amount of statically stack allocated memory matches your expectation.
+    /// It is computed based on the bump stack pointer instructions. In case if the amount of memory
+    /// allocated cannot be determined, the predicate expects a null. Note, that it excludes
+    /// dynamically allocated - that is, all inner calls (and their stack allocations) as well
+    /// as anything allocated with <see langword="stackalloc"/>.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldStaticStackAllocate(this CodegenInfo ci, Func<int?, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.Should($"Expected specific stack allocated size ({expr}). Got {ci.StaticStackAllocatedMemory} bytes instead.", ci => predicate(ci.StaticStackAllocatedMemory), ci => ci.ToString());
 
-    public static void HasBranchesNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
-        => HasInRange(tier, null, upperLimit, CodegenAnalyzers.GetBranches, "branches", expr);
+    /// <summary>
+    /// Check if the amount of statically stack allocated memory is no more than the expected size.
+    /// It is computed based on the bump stack pointer instructions. In case if the amount of memory
+    /// allocated cannot be determined, the predicate expects a null.  Note, that it excludes
+    /// dynamically allocated - that is, all inner calls (and their stack allocations) as well
+    /// as anything allocated with <see langword="stackalloc"/>.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldStaticStackAllocateNoMoreThan(this CodegenInfo ci, int byteSizeUpperLimit, [CallerArgumentExpression("byteSizeUpperLimit")] string expr = "")
+        => ci.ShouldStaticStackAllocate(i => i is null || i <= byteSizeUpperLimit, expr);
 
-    public static void HasCallsAtLeast(int atLeast, CompilationTier tier, Expr expr)
-        => HasInRange(tier, atLeast, null, CodegenAnalyzers.GetCalls, "calls", expr);
 
-    public static void HasCallsNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
-        => HasInRange(tier, null, upperLimit, CodegenAnalyzers.GetCalls, "calls", expr);
+    /// <summary>
+    /// Checks if the size of the codegen (the set of instructions) (in bytes)
+    /// matches your expectation.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldBeOfSize(this CodegenInfo ci, Func<int, bool> predicate, [CallerArgumentExpression("predicate")] string expr = "")
+        => ci.Should($"Expected codegen of specific size ({expr}). It is {ci.Size} bytes instead.", ci => predicate(ci.Size), ci => ci.ToString());
 
-
-    public static void StackAllocatesInRange(int lowerLimit, int upperLimit, CompilationTier tier, Expr expr)
-        => NumberInRange(tier, lowerLimit, upperLimit, CodegenAnalyzers.GetStaticStackAllocatedMemory, "static stack allocated memory", expr);
-
-    public static void StackAllocatesNoMoreThan(int upperLimit, CompilationTier tier, Expr expr)
-        => NumberInRange(tier, 0, upperLimit, CodegenAnalyzers.GetStaticStackAllocatedMemory, "static stack allocated memory", expr);
-
-    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        HasInRange(tier, from, to, pred, comment, mi, instance, args);
-    }
-
-    internal static void NumberInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, int?> pred, string comment, Expr expr)
-    {
-        var (mi, instance, args) = ExpressionUtils.LambdaToMethodInfo(expr);
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, args);
-        var message = $"Expected to contain ";
-        var count = pred(ci.Instructions);
-        if (from is { } aFrom)
-            message += $"at least {aFrom}";
-        if (from is not null && to is not null)
-            message += " no more than ";
-        if (to is { } aTo)
-            message += aTo;
-        message += $" {comment}, got {count} instead";
-
-        AssertFact(
-            (from is not { } nnFrom || count >= nnFrom)
-            && (to is not { } nnTo || count <= nnTo),
-            ci, null, message);
-    }
-
-    internal static void HasInRange(CompilationTier tier, int? from, int? to, Func<IReadOnlyList<Instruction>, IEnumerable<int>> pred, string comment, MethodInfo? mi, object? instance, params object?[] arguments)
-    {
-        var ci = CodegenInfoResolver.GetCodegenInfo(tier, mi, instance, arguments);
-        var problematicLines = pred(ci.Instructions);
-        var count = problematicLines.Count();
-        var message = $"Expected to contain ";
-
-        if (from is { } aFrom)
-            message += $"at least {aFrom}";
-        if (from is not null && to is not null)
-            message += " no more than ";
-        if (to is { } aTo)
-            message += aTo;
-        message += $" {comment}, got {count} instead";
-
-        AssertFact(
-            (from is not { } nnFrom || count >= nnFrom)
-            && (to is not { } nnTo || count <= nnTo),
-            ci, problematicLines, message);
-    }
+    /// <summary>
+    /// Checks if the size of the codegen (the set of instructions) (in bytes)
+    /// is not larger than the expected upper limit.
+    /// </summary>
+    /// <returns>The instance. Use it for fluent assertions.</returns>
+    public static CodegenInfo ShouldBeNotLargerThan(this CodegenInfo ci, int byteSizeUpperLimit, [CallerArgumentExpression("byteSizeUpperLimit")] string expr = "")
+        => ci.ShouldBeOfSize(b => b <= byteSizeUpperLimit, expr);
 }
