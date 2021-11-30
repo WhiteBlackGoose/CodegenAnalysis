@@ -24,15 +24,15 @@ public class CodegenSize
     public void Test1()
     {
         CodegenInfo.Obtain(() => SomeMethod(4, 5), CompilationTier.Tier1)
-            .ShouldStaticStackAllocateNoMoreThan(20);
+            .ShouldBeNotLargerThan(20);
     }
 
     [Fact]
     public void Test2()
     {
         Assert.Throws<CodegenAssertionFailedException>(() =>
-            CodegenInfo.Obtain(() => SomeHeavyMethod(4, 5), CompilationTier.Default)
-                .ShouldStaticStackAllocateNoMoreThan(10)
+            CodegenInfo.Obtain(() => SomeHeavyMethod(4, 5), CompilationTier.Tier1)
+                .ShouldBeNotLargerThan(10)
         );
     }
 
