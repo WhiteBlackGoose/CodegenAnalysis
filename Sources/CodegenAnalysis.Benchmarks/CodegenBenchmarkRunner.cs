@@ -7,14 +7,33 @@ using HonkSharp.Fluency;
 
 namespace CodegenAnalysis.Benchmarks;
 
+
 public static class CodegenBenchmarkRunner
 {
-    public static void Run<T>(Output? output = null)
+    /// <summary>
+    /// Runs the benchmarks on the given type. Takes
+    /// public methods only. Will try to run the
+    /// parameterless constructor if there is at least
+    /// one instance public method.
+    /// 
+    /// The methods to run need to be annotated with <see cref="CAAnalyzeAttribute"/>.
+    /// </summary>
+    /// <returns>Null in case of failure</returns>
+    public static BenchmarkResult? Run<T>(Output? output = null)
     {
-        Run(typeof(T), output);
+        return Run(typeof(T), output);
     }
 
-    public static void Run(Type type, Output? output = null)
+    /// <summary>
+    /// Runs the benchmarks on the given type. Takes
+    /// public methods only. Will try to run the
+    /// parameterless constructor if there is at least
+    /// one instance public method.
+    /// 
+    /// The methods to run need to be annotated with <see cref="CAAnalyzeAttribute"/>.
+    /// </summary>
+    /// <returns>Null in case of failure</returns>
+    public static BenchmarkResult? Run(Type type, Output? output = null)
     {
         output ??= new();
 
@@ -32,7 +51,7 @@ public static class CodegenBenchmarkRunner
         else
         {
             output.Logger?.WriteLine($"\nNo methods with {nameof(CAAnalyzeAttribute)} were detected! Exitting...", ConsoleColor.Red);
-            return;
+            return null;
         }
 
         object? instance = methods.Any(mi => !mi.Info.IsStatic) ? Activator.CreateInstance(type) : null;
@@ -168,6 +187,10 @@ public static class CodegenBenchmarkRunner
             else
                 Exporters.ExportMd(output.MarkdownExporter, table, codegens, options);
         }
+
+
+        return new(Codegens: codegens, Table: table);
+
 
         static string IntToString(int a)
             => a is 0 ? " - " : a.ToString();
