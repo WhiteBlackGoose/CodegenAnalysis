@@ -34,6 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_RepoItems", "_RepoItems", 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Terminal", "Sources\CodegenAnalysis.Terminal\CodegenAnalysis.Terminal.csproj", "{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{BEDEEFD0-78FB-4EC5-A4AE-3A22AEE23BDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEDEEFD0-78FB-4EC5-A4AE-3A22AEE23BDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEDEEFD0-78FB-4EC5-A4AE-3A22AEE23BDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +85,7 @@ Global
 		{5C8FD46F-7FF3-4F30-B4CB-58A5EDB76CE5} = {7ADC4419-5412-4DBD-BBA8-18893DAE1EE8}
 		{E86463D9-E658-441E-BD0D-E019B9FD604E} = {7ADC4419-5412-4DBD-BBA8-18893DAE1EE8}
 		{60BADD62-6147-4B0D-AC22-5121D2F43B89} = {7ADC4419-5412-4DBD-BBA8-18893DAE1EE8}
+		{BAEDC4AD-F566-446E-8EA6-CAA41CDA1E7A} = {92CE0A99-1C78-48AC-AFBD-05B4B49C0792}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F18376F8-88FF-4F17-ADB0-8CA7610DB6E4}
