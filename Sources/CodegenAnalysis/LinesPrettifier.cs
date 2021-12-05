@@ -53,13 +53,15 @@ internal sealed class Lines
 
     public Lines DrawArrows(IEnumerable<(int From, int To)> dst, bool ascii = false)
     {
-        var symbolVertical =     ascii ? '|' : '│';
-        var symbolHorizontal =   ascii ? '-' : '─';
-        var symbolIntersection = ascii ? '+' : '┼';
-        var symbolUpRight =      ascii ? '+' : '└';
-        var symbolDownRight =    ascii ? '+' : '┌';
-        var symbolUpDownRight =  ascii ? '+' : '├';
-        var symbolArrow =        ascii ? '>' : '>';
+        var symbolVertical =      ascii ? '|' : '│';
+        var symbolHorizontal =    ascii ? '-' : '─';
+        var symbolIntersection =  ascii ? '+' : '┼';
+        var symbolUpRight =       ascii ? '+' : '└';
+        var symbolDownRight =     ascii ? '+' : '┌';
+        var symbolUpDownRight =   ascii ? '+' : '├';
+        var symbolLeftDownRight = ascii ? '+' : '┬';
+        var symbolArrow =         ascii ? '>' : '>';
+        var symbolLeftUpRight =   ascii ? '+' : '┴';
 
         foreach (var (from, to) in dst)
         {
@@ -109,8 +111,16 @@ internal sealed class Lines
             if (b == ' ') return a;
             if (a == symbolVertical && b == symbolVertical)
                 return symbolVertical;
-            if (Are(a, b, symbolUpRight, symbolVertical))
+            if (Are(a, b, symbolUpRight, symbolVertical) || Are(a, b, symbolDownRight, symbolVertical))
                 return symbolUpDownRight;
+            if (Are(a, b, symbolUpDownRight, symbolVertical))
+                return symbolUpDownRight;
+            if (Are(a, b, symbolHorizontal, symbolDownRight))
+                return symbolLeftDownRight;
+            if (Are(a, b, symbolHorizontal, symbolUpRight))
+                return symbolLeftUpRight;
+            if (Are(a, b, symbolArrow, symbolHorizontal))
+                return symbolArrow;
             // TODO: add other symbols
             throw new($"Unsupported merge of {a} and {b}");
 
