@@ -65,7 +65,6 @@ public static class CodegenAnalyzers
         // lea r11, [rsp - 10]
         // call something
         // mov rsp, r11
-        /*
         {
             if (i >= instructions.Count - 3)
                 return null;
@@ -78,8 +77,26 @@ public static class CodegenAnalyzers
                 goto next;
             if (!isMov(movToRspCandidate))
                 goto next;
-            if (leaCandidate.
-        }*/
+
+            // lea someregister, [rsp-displacement]
+            if (leaCandidate.GetOpKind(0) != OpKind.Register)
+                goto next;
+            if (leaCandidate.GetOpKind(1) != OpKind.Memory)
+                goto next;
+            if (leaCandidate.MemoryBase != Register.RSP)
+                goto next;
+
+            // mov rsp, someregister 
+            if (movToRspCandidate.Op0Kind != OpKind.Register)
+                goto next;
+            if (movToRspCandidate.Op1Kind != OpKind.Register)
+                goto next;
+            if (movToRspCandidate.Op0Register != Register.RSP)
+                goto next;
+            if (movToRspCandidate.Op1Register != leaCandidate.Op0Register)
+                goto next;
+            return (int)(-(long)leaCandidate.MemoryDisplacement64);
+        }
         next:
 
 

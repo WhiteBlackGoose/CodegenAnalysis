@@ -59,7 +59,7 @@ public class StaticStackAlloc
     [Fact]
     public void BigSizeAllocTest()
     {
-        CodegenInfo.Obtain(() => BigSizeAlloc(), CompilationTier.Default)
+        CodegenInfo.Obtain(() => BigSizeAlloc())
             .ShouldStaticStackAllocate(s => s is >= 30000 and <= 35000);
     }
 }
