@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace CodegenAnalysis.Assertions.Tests;
@@ -36,5 +37,29 @@ public class StaticStackAlloc
     {
         CodegenInfo.Obtain(() => AddComplicated(3, 5))
             .ShouldStaticStackAllocate(s => s is >= 32 and <= 80);
+    }
+
+
+    [StructLayout(LayoutKind.Explicit, Size = 32973)]
+    public struct BigStruct
+    {
+        
+    }
+
+    [SkipLocalsInit]
+    public static unsafe int BigSizeAlloc()
+    {
+        BigStruct meh;
+        var s = 0;
+        for (int i = 0; i < sizeof(BigStruct); i++)
+            s += ((byte*)&meh)[i];
+        return s;
+    }
+
+    [Fact]
+    public void BigSizeAllocTest()
+    {
+        CodegenInfo.Obtain(() => BigSizeAlloc())
+            .ShouldStaticStackAllocate(s => s is >= 30000 and <= 35000);
     }
 }

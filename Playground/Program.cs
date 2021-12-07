@@ -7,7 +7,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 CodegenBenchmarkRunner.Run<A>();
 // Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.SomeHeavyMethod(3, 5)));
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HonkSharp.Functional;
 using HonkSharp.Fluency;
+using System.Diagnostics;
 
 namespace CodegenAnalysis.Benchmarks;
 
@@ -34,9 +35,15 @@ public static class CodegenBenchmarkRunner
     /// The methods to run need to be annotated with <see cref="CAAnalyzeAttribute"/>.
     /// </summary>
     /// <returns>Null in case of failure</returns>
-    public static BenchmarkResult? Run(Type type, Output? output = null)
+    public static BenchmarkResult? Run(Type type, Output? outputWrapper = null)
     {
-        output ??= new();
+        using var output = outputWrapper ?? new();
+
+        if (type.Assembly.IsInDebug())
+        {
+            output.Logger?.WriteLine("The assembly seems to be in Debug mode. Switch to release!", ConsoleColor.Red);
+            return null;
+        }
 
         var jobs = GetJobs(type);
         output.Logger?.WriteLine($"Detected jobs: \n  {string.Join("\n  ", (IEnumerable<CAJobAttribute>)jobs)}", ConsoleColor.DarkMagenta);
@@ -52,7 +59,6 @@ public static class CodegenBenchmarkRunner
         else
         {
             output.Logger?.WriteLine($"\nNo methods with {nameof(CAAnalyzeAttribute)} were detected! Exitting...", ConsoleColor.Red);
-            output.Dispose();
             return null;
         }
 
@@ -190,8 +196,6 @@ public static class CodegenBenchmarkRunner
                 Exporters.ExportMd(output.MarkdownExporter, table, codegens, options);
         }
 
-        output.Dispose();
-
         return new(Codegens: codegens, Table: table);
 
 
@@ -217,6 +221,14 @@ public static class CodegenBenchmarkRunner
         }
     }
 
+    internal static bool IsInDebug(this Assembly asm)
+    {
+        var debugs = asm.AttributesOfType<DebuggableAttribute>();
+        if (debugs.Count() != 1)
+            throw new($"Internal bug #2. {debugs.Count()} of {nameof(DebuggableAttribute)} detected.");
+        var debug = debugs.Single();
+        return debug.IsJITOptimizerDisabled;
+    }
 
     private class MiTierComparer : IComparer<(MethodInfo, CompilationTier)>
     {
@@ -265,6 +277,9 @@ public static class CodegenBenchmarkRunner
         => mi.GetCustomAttributes(typeof(T)).Select(c => (T)c);
 
     private static IEnumerable<T> AttributesOfType<T>(this Type type) where T : Attribute
+        => type.GetCustomAttributes(typeof(T)).Select(c => (T)c);
+
+    private static IEnumerable<T> AttributesOfType<T>(this Assembly type) where T : Attribute
         => type.GetCustomAttributes(typeof(T)).Select(c => (T)c);
 
     private static T? RealSingleOrDefault<T>(this IEnumerable<T> seq)

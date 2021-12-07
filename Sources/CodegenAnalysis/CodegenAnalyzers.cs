@@ -38,6 +38,10 @@ public static class CodegenAnalyzers
             .Select(p => p.Index);
     }
 
+    private static readonly Func<Instruction, bool> isPush = i => i.Code.ToString().StartsWith("Push");
+    private static readonly Func<Instruction, bool> isLea = i => i.Code.ToString().StartsWith("Lea");
+    private static readonly Func<Instruction, bool> isMov = i => i.Code.ToString().StartsWith("Mov");
+
     /// <summary>
     /// Similar to <see cref="CodegenInfo.StaticStackAllocatedMemory"/>
     /// </summary>
@@ -45,13 +49,58 @@ public static class CodegenAnalyzers
     {
         if (instructions.Count < 1)
             return 0;
-        for (int i = 0; i <= 1; i++)
+        var i = 0;
+        while (i < instructions.Count && isPush(instructions[i]))
+            i++;
+
+        // sub rsp, 10
         {
+            if (i >= instructions.Count)
+                return null;
             var candidate = instructions[i];
             if (candidate.Code is Code.Sub_rm64_imm32 or Code.Sub_rm64_imm8 && candidate.Op0Register == Register.RSP)
                 return (int)candidate.Immediate32;
         }
-        return 0;
+
+        // lea r11, [rsp - 10]
+        // call something
+        // mov rsp, r11
+        {
+            if (i >= instructions.Count - 3)
+                return null;
+            var leaCandidate = instructions[i];
+            var callCandidate = instructions[i + 1];
+            var movToRspCandidate = instructions[i + 2];
+            if (!isLea(leaCandidate))
+                goto next;
+            if (!isCall(callCandidate))
+                goto next;
+            if (!isMov(movToRspCandidate))
+                goto next;
+
+            // lea someregister, [rsp-displacement]
+            if (leaCandidate.GetOpKind(0) != OpKind.Register)
+                goto next;
+            if (leaCandidate.GetOpKind(1) != OpKind.Memory)
+                goto next;
+            if (leaCandidate.MemoryBase != Register.RSP)
+                goto next;
+
+            // mov rsp, someregister 
+            if (movToRspCandidate.Op0Kind != OpKind.Register)
+                goto next;
+            if (movToRspCandidate.Op1Kind != OpKind.Register)
+                goto next;
+            if (movToRspCandidate.Op0Register != Register.RSP)
+                goto next;
+            if (movToRspCandidate.Op1Register != leaCandidate.Op0Register)
+                goto next;
+            return (int)(-(long)leaCandidate.MemoryDisplacement64);
+        }
+        next:
+
+
+        return null;
     }
 
     /// <summary>
