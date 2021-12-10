@@ -23,7 +23,7 @@ CodegenBenchmarkRunner.Run<A>();
 [CAExport(Export.Html),
  CAExport(Export.Md)]
 
-[CAOptions(VisualizeBackwardJumps = true)]
+[CAOptions(VisualizeBackwardJumps = true, VisualizeForwardJumps = true)]
 public class A
 {
     

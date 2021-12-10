@@ -56,6 +56,8 @@ internal static class Exporters
         var lines = ci.ToLines();
         if (options.VisualizeBackwardJumps)
             lines.DrawArrows(CodegenAnalyzers.GetBackwardJumps(ci.Instructions));
+        if (options.VisualizeForwardJumps)
+            lines.DrawArrows(CodegenAnalyzers.GetJumps(ci.Instructions).Where(c => c.To is { } to && to > c.From));
         return lines.ToString();
     }
 }

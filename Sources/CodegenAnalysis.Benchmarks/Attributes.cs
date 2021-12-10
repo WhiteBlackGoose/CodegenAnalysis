@@ -124,7 +124,8 @@ public enum Export
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
 public sealed class CAOptionsAttribute : Attribute
 {
-    public bool VisualizeBackwardJumps { get; set; }
+    public bool VisualizeBackwardJumps { get; set; } = true;
+    public bool VisualizeForwardJumps { get; set; } = true;
     public CAOptionsAttribute()
     {
 

@@ -109,8 +109,8 @@ internal sealed class Lines
                 return symbolVertical;
             if (a == ' ') return b;
             if (b == ' ') return a;
-            if (a == symbolVertical && b == symbolVertical)
-                return symbolVertical;
+            if (a == b)
+                return a;
             if (Are(a, b, symbolUpRight, symbolVertical) || Are(a, b, symbolDownRight, symbolVertical))
                 return symbolUpDownRight;
             if (Are(a, b, symbolUpDownRight, symbolVertical))

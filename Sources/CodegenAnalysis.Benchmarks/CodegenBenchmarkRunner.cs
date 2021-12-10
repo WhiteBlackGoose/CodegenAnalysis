@@ -124,7 +124,7 @@ public static class CodegenBenchmarkRunner
                 table[rowId, 0] = job.ToString();
                 table[rowId, 1] = actualMi.ToString()!;
 
-                if (ci is null) throw new Exception("Internal bug #1.");
+                if (ci is null && error is null) throw new Exception("Internal bug #1.");
 
                 for (int i = 0; i < columns.Length; i++)
                 {
@@ -261,7 +261,7 @@ public static class CodegenBenchmarkRunner
         var res = type.AttributesOfType<CAOptionsAttribute>();
         if (res.Any())
             return res.Single();
-        return new CAOptionsAttribute() { VisualizeBackwardJumps = true };
+        return new CAOptionsAttribute();
     }
 
     private static IEnumerable<(MethodInfo Info, IEnumerable<CAAnalyzeAttribute> Args)> GetMethods(Type type)
