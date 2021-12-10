@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>0.0.9-alpha</Version>
+    <Version>0.0.10-alpha</Version>
     <Authors>WhiteBlackGoose</Authors>
     <Copyright>© WhiteBlackGoose 2021</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Static stack allocation improved; Debug detection added for benchmarks.</PackageReleaseNotes>
+    <PackageReleaseNotes>Forward jumps visualization and bugs fixed.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAssertions</RepositoryUrl>
     <PackageTags>performance, jit, codegen</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

@@ -129,6 +129,7 @@ public static class CodegenBenchmarkRunner
                 for (int i = 0; i < columns.Length; i++)
                 {
                     if (error is null)
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
                         table[rowId, i + 2] = columns[i].Column switch
                         {
                             CAColumn.Branches => IntToString(CodegenAnalyzers.GetBranches(ci.Instructions).Count()),
@@ -138,6 +139,7 @@ public static class CodegenBenchmarkRunner
                             CAColumn.ILSize => BytesToString(mi.GetMethodBody()!.GetILAsByteArray()!.Length),
                             var unexpected => throw new($"Internal error. Unexpected {unexpected}")
                         };
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
                     else
                         table[rowId, i + 2] = $"NA ({errorNumber})";
                 }
