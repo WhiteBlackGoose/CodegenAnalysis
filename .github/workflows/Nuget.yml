@@ -39,7 +39,7 @@ jobs:
           dotnet build -c release
           dotnet pack -c release -p:PackageVersion=$name
           cd bin/release
-          dotnet nuget push CodegenAnalysis.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push CodegenAnalysis.$name.nupkg --api-key ${{ secrets.NUGET_KEY }} -s "nuget"
           cd ../../..
           
           # CodegenAnalysis.Assertions
@@ -48,7 +48,7 @@ jobs:
           dotnet build -c release
           dotnet pack -c release -p:PackageVersion=$name
           cd bin/release
-          dotnet nuget push CodegenAnalysis.Assertions.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push CodegenAnalysis.Assertions.$name.nupkg --api-key ${{ secrets.NUGET_KEY }} -s "nuget"
           cd ../../..
           
           # CodegenAnalysis.Benchmarks
@@ -57,5 +57,5 @@ jobs:
           dotnet build -c release
           dotnet pack -c release -p:PackageVersion=$name
           cd bin/release
-          dotnet nuget push CodegenAnalysis.Benchmarks.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          dotnet nuget push CodegenAnalysis.Benchmarks.$name.nupkg --api-key ${{ secrets.NUGET_KEY }} -s "nuget"
           cd ../../..
