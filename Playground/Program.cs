@@ -73,5 +73,16 @@ public class A
             throw new();
         return a - b;
     }
+
+    [CAAnalyze]
+    public int SumThings()
+    {
+        var a = new int[10, 20];
+        var s = 0;
+        for (int i = 0; i < a.GetLength(0); i++)
+            for (int j = 0; j < a.GetLength(1); j++)
+                s += a[i, j];
+        return s;
+    }
 }
 

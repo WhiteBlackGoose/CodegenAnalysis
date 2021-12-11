@@ -306,7 +306,7 @@ public static class CodegenBenchmarkRunner
 
         var type = subject.holdingType;
         var name = subject.methodName;
-        var methods = type.GetMethods().Where(mi => mi.Name == name);
+        var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).Where(mi => mi.Name == name);
 
         if (!methods.Any())
             return new Exception($"{name} not found. Type has: {string.Join(", ", methods.Select(m => m.Name))}");

@@ -121,6 +121,8 @@ internal sealed class Lines
                 return symbolLeftUpRight;
             if (Are(a, b, symbolArrow, symbolHorizontal))
                 return symbolArrow;
+            if (Are(a, b, symbolIntersection, symbolHorizontal))
+                return symbolIntersection;
             // TODO: add other symbols
             throw new($"Unsupported merge of {a} and {b}");
 
