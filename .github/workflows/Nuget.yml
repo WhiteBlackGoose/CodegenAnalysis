@@ -1,0 +1,61 @@
+name: 'Upload last-master versions to MyGet'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup .NET 6
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+          
+      - uses: actions/checkout@v2
+        
+      - name: 'Verify that the tests pass'
+        run: |
+          dotnet restore
+          dotnet test -c release
+        
+      - name: 'Push new packages to nuget'
+        run: |
+          cd Sources
+ 
+          # versioning
+          commithash=$(git rev-parse --short HEAD)
+          currtime=$(date +%s)
+          echo "commit hash is $commithash"
+          echo "time is $currtime"
+          name=0.0.$currtime-$commithash-alpha
+          echo "name is $name"
+          
+          # CodegenAnalysis
+          cd CodegenAnalysis
+          dotnet restore
+          dotnet build -c release
+          dotnet pack -c release -p:PackageVersion=$name
+          cd bin/release
+          dotnet nuget push CodegenAnalysis.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          cd ../../..
+          
+          # CodegenAnalysis.Assertions
+          cd CodegenAnalysis.Assertions
+          dotnet restore
+          dotnet build -c release
+          dotnet pack -c release -p:PackageVersion=$name
+          cd bin/release
+          dotnet nuget push CodegenAnalysis.Assertions.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          cd ../../..
+          
+          # CodegenAnalysis.Benchmarks
+          cd CodegenAnalysis.Benchmarks
+          dotnet restore
+          dotnet build -c release
+          dotnet pack -c release -p:PackageVersion=$name
+          cd bin/release
+          dotnet nuget push CodegenAnalysis.Benchmarks.$name.nupkg --api-key ${{ secrets.NUGET_KEY }}
+          cd ../../..
