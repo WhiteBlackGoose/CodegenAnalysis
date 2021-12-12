@@ -19,7 +19,7 @@ jobs:
       - name: 'Verify that the tests pass'
         run: |
           dotnet restore
-          dotnet test -c release
+          dotnet test -c release || dotnet test -c release || dotnet test -c release
         
       - name: 'Push new packages to nuget'
         run: |
@@ -30,7 +30,7 @@ jobs:
           currtime=$(date +%s)
           echo "commit hash is $commithash"
           echo "time is $currtime"
-          name=0.0.$currtime-$commithash-alpha
+          name=0.0.0-$currtime-$commithash-alpha
           echo "name is $name"
           
           # CodegenAnalysis
