@@ -1,88 +1,48 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using CodegenAnalysis;
 using CodegenAnalysis.Benchmarks;
+using HonkSharp.Functional;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-CodegenBenchmarkRunner.Run<A>();
-// Console.WriteLine(CodegenInfoResolver.GetCodegenInfo(CompilationTier.Tier1, () => A.SomeHeavyMethod(3, 5)));
+CodegenBenchmarkRunner.Run<DSdsd>();
 
-
-[CAJob(Tier = CompilationTier.Tier1),
- CAJob(Tier = CompilationTier.Default)]
-
-[CAColumn(CAColumn.Branches),
- CAColumn(CAColumn.Calls), 
- CAColumn(CAColumn.StaticStackAllocations),
- CAColumn(CAColumn.CodegenSize),
- CAColumn(CAColumn.ILSize)]
-
-[CAExport(Export.Html),
- CAExport(Export.Md)]
-
-[CAOptions(VisualizeBackwardJumps = true, VisualizeForwardJumps = true)]
-public class A
+[CAJob(Tier = CompilationTier.Default)]
+[CAJob(Tier = CompilationTier.Tier1)]
+class DSdsd
 {
-    
-    [CAAnalyze(3.5f)]
-    [CAAnalyze(13.5f)]
-    [CASubject(typeof(A), "Do1", new [] { typeof(float) })]
-    public static float Heavy(float a)
+    static int x;
+
+    static volatile int xv;
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static int IncrementField()
     {
-        var b = Do1(a);
-        var c = Do1(b);
-        if (a > 10)
-            c += Aaa(a);
-        return c + b;
+        x++;
+        return x;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static float Do1(float a)
+    public static int IncrementFieldVolatile()
     {
-        return a * 2;
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    public static float Aaa(float h)
-    {
-        return h * h * h;
-    }
-
-    [CAAnalyze(13.5f)]
-    public static float AaaLoop(float h)
-    {
-        while (h < 0)
-        {
-            h -= 5f;
-        }
-        return h;
-    }
-
-    public static int SomeHeavyMethod(int a, int b)
-    {
-        a += b;
-        b += a;
-        b += a / b;
-        b += b / a;
-        a *= a;
-        if (a < 0) a = 5;
-        if (a < -5)
-            throw new();
-        return a - b;
+        xv++;
+        return xv;
     }
 
     [CAAnalyze]
-    public int SumThings()
+    [CASubject(typeof(DSdsd), nameof(IncrementField))]
+    public static void IncrementFieldEntryPoint()
     {
-        var a = new int[10, 20];
-        var s = 0;
-        for (int i = 0; i < a.GetLength(0); i++)
-            for (int j = 0; j < a.GetLength(1); j++)
-                s += a[i, j];
-        return s;
+        IncrementField();
+    }
+
+    [CAAnalyze]
+    [CASubject(typeof(DSdsd), nameof(IncrementFieldVolatile))]
+    public static void IncrementFieldVolatileEntryPoint()
+    {
+        IncrementFieldVolatile();
     }
 }
-

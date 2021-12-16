@@ -122,7 +122,10 @@ public static class CodegenBenchmarkRunner
                 
                 fillingTable:
                 table[rowId, 0] = job.ToString();
-                table[rowId, 1] = actualMi.ToString()!;
+                if (actualMi is not null)
+                    table[rowId, 1] = actualMi.ToString();
+                else
+                    table[rowId, 1] = $"NA ({errorNumber})";
 
                 if (ci is null && error is null) throw new Exception("Internal bug #1.");
 
