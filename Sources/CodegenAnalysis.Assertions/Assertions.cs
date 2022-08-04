@@ -17,9 +17,45 @@ public sealed class CallerArgumentExpressionAttribute : Attribute
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 #endif
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+/// <summary>
+/// Contains extension methods for your tests.
+/// </summary>
+/// <example>
+/// <code>
+/// public class Tests
+/// {
+///     public class A
+///     {
+///         public virtual int H => 3;
+///     }
+/// 
+///     public sealed class B : A
+///     {
+///         public override int H => 6;
+///     }
+/// 
+///     // this will get devirtualized at tier1, but not at tier0
+///     static int Twice(B b) => b.H * 2;
+/// 
+///     [Fact]
+///     public void NotDevirtTier0()
+///     {
+///         CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Default)
+///             .ShouldHaveCalls(c => c >= 1)
+///             .ShouldHaveBranches(0);
+///     }
+/// 
+///     [Fact]
+///     public void DevirtTier1()
+///     {
+///         CodegenInfo.Obtain(() => Twice(new B()), CompilationTier.Tier1)
+///             .ShouldHaveCalls(0)
+///             .ShouldStaticStackAllocateNoMoreThan(10 /* max bytes to be in stack */);
+///     }
+/// }
+/// </code>
+/// </example>
 public static partial class AssertCodegen
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 {
     private static CodegenInfo Should(this CodegenInfo ci, string msg, Func<CodegenInfo, bool> fact, Func<CodegenInfo, string> prettifyOnFailure)
     {

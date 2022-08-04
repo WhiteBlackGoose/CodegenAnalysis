@@ -8,7 +8,33 @@ namespace CodegenAnalysis.Benchmarks;
 /// Put this on the methods to analyze. If you need
 /// to cover multiple branches, put them such that
 /// their inputs force multiple branches.
+///
+/// The arguments you pass will be passed to the method.
+/// Make sure that the types of arguments exactly equal
+/// to the types expected by the method (e. g. if a `float`
+/// is expected and you want to pass 1, pass 1f or 1.0f).
+///
+/// Note that the JIT compiles lazily, so if you have 
+/// multiple branches in the method, it is better that you
+/// provide arguments, which cover all branches.
 /// </summary>
+/// <example>
+/// <code>
+/// [CAAnalyze(3.5f)]
+/// [CAAnalyze(13.5f)]
+/// public static float Heavy(float a)
+/// {
+///     var b = Do1(a);
+///     var c = Do1(b);
+///     if (a > 10)
+///         c += Aaa(a);
+///     else
+///         c += SomethingElse();
+///     return c + b;
+/// }
+/// </code>
+/// Two different arguments are used to cover both branches.
+/// </example>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public sealed class CAAnalyzeAttribute : Attribute
 {
@@ -24,6 +50,8 @@ public sealed class CAAnalyzeAttribute : Attribute
 /// <summary>
 /// Adds a job to work on.
 /// Currently it only specifies the compilation tier.
+/// If this attribute wasn't added, the runner will do one
+/// job with tier1 (recommended).
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class CAJobAttribute : Attribute
@@ -39,7 +67,8 @@ public sealed class CAJobAttribute : Attribute
 }
 
 /// <summary>
-/// Adds a column to the output table.
+/// Adds a column to the output table. Without this attribute
+/// specified, branchs, codegensize and calls will be used.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class CAColumnAttribute : Attribute
