@@ -9,8 +9,21 @@ var ci2 = CodegenInfo.Obtain(() => LibraryClass.Sum(12));
 Console.WriteLine("\n\nSum codegen:");
 Console.WriteLine(ci2);
 
-Console.WriteLine("\n\nSum codegen with visualization:");
-Console.WriteLine(ci2.ToString(true));
+var lines1 = ci2.ToLines();
+Console.WriteLine("\n\nSum codegen with visualization of loops:");
+lines1.DrawArrows(CodegenAnalyzers.GetBackwardJumps(ci2.Instructions));
+Console.WriteLine(lines1);
+
+var lines2 = ci2.ToLines();
+Console.WriteLine("\n\nSum codegen with visualization of ifs:");
+lines2.DrawArrows(CodegenAnalyzers.GetJumps(ci2.Instructions));
+Console.WriteLine(lines2);
+
+var lines3 = ci2.ToLines();
+Console.WriteLine("\n\nSum codegen with visualization of ifs and loops:");
+lines3.DrawArrows(CodegenAnalyzers.GetBackwardJumps(ci2.Instructions));
+lines3.DrawArrows(CodegenAnalyzers.GetJumps(ci2.Instructions));
+Console.WriteLine(lines3);
 
 
 public static class LibraryClass
