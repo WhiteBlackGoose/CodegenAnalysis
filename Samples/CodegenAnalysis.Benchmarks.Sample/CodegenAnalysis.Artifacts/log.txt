@@ -1,0 +1,99 @@
+Detected jobs: 
+  (Tier = Default)
+  (Tier = Tier1)
+
+Detected columns: 
+  Branches
+  Calls
+  CodegenSize
+  StaticStackAllocations
+
+Detected methods: 
+  Single Heavy(Single)((3.5), (13.5))
+  Single Square(Single)((6))
+
+Investigating Single Heavy(Single) (3.5), (13.5) (Tier = Default)...
+Investigating Single Square(Single) (6) (Tier = Default)...
+Investigating Single Heavy(Single) (3.5), (13.5) (Tier = Tier1)...
+Investigating Single Square(Single) (6) (Tier = Tier1)...
+
+
+
+(Single Heavy(Single), Default)
+      00007F55885E14C0 55                   push      rbp
+      00007F55885E14C1 4883EC10             sub       rsp,10h
+      00007F55885E14C5 C5F877               vzeroupper
+      00007F55885E14C8 488D6C2410           lea       rbp,[rsp+10h]
+      00007F55885E14CD 33C0                 xor       eax,eax
+      00007F55885E14CF 8945F8               mov       [rbp-8],eax
+      00007F55885E14D2 8945F4               mov       [rbp-0Ch],eax
+      00007F55885E14D5 C5FA1145FC           vmovss    [rbp-4],xmm0
+      00007F55885E14DA C5FA1045FC           vmovss    xmm0,[rbp-4]
+      00007F55885E14DF E8D40FB4FF           call      Single Do1(Single) (00007F55881224B8)
+      00007F55885E14E4 C5FA1145F8           vmovss    [rbp-8],xmm0
+      00007F55885E14E9 C5FA1045F8           vmovss    xmm0,[rbp-8]
+      00007F55885E14EE E8C50FB4FF           call      Single Do1(Single) (00007F55881224B8)
+      00007F55885E14F3 C5FA1145F4           vmovss    [rbp-0Ch],xmm0
+      00007F55885E14F8 C5FA1045FC           vmovss    xmm0,[rbp-4]
+      00007F55885E14FD C5F82E0533000000     vucomiss  xmm0,[rel 7F55`885E`1538h]
+    ┌─00007F55885E1505 7614                 jbe       short 0000`7F55`885E`151Bh
+    │ 00007F55885E1507 C5FA1045FC           vmovss    xmm0,[rbp-4]
+    │ 00007F55885E150C E8AF0FB4FF           call      0000`7F55`8812`24C0h
+    │ 00007F55885E1511 C5FA5845F4           vaddss    xmm0,xmm0,[rbp-0Ch]
+    │ 00007F55885E1516 C5FA1145F4           vmovss    [rbp-0Ch],xmm0
+    └>00007F55885E151B C5FA1045F4           vmovss    xmm0,[rbp-0Ch]
+      00007F55885E1520 C5FA5845F8           vaddss    xmm0,xmm0,[rbp-8]
+      00007F55885E1525 4883C410             add       rsp,10h
+      00007F55885E1529 5D                   pop       rbp
+      00007F55885E152A C3                   ret
+
+
+(Single Heavy(Single), Tier1)
+      00007F55885FE990 55                   push      rbp
+      00007F55885FE991 4883EC10             sub       rsp,10h
+      00007F55885FE995 C5F877               vzeroupper
+      00007F55885FE998 488D6C2410           lea       rbp,[rsp+10h]
+      00007F55885FE99D C5FA1145FC           vmovss    [rbp-4],xmm0
+      00007F55885FE9A2 E8113BB2FF           call      Single Do1(Single) (00007F55881224B8)
+      00007F55885FE9A7 C5FA1145F8           vmovss    [rbp-8],xmm0
+      00007F55885FE9AC E8073BB2FF           call      Single Do1(Single) (00007F55881224B8)
+      00007F55885FE9B1 C5FA1145F4           vmovss    [rbp-0Ch],xmm0
+      00007F55885FE9B6 C5FA104DFC           vmovss    xmm1,[rbp-4]
+      00007F55885FE9BB C5F82E0D35000000     vucomiss  xmm1,[rel 7F55`885F`E9F8h]
+    ┌─00007F55885FE9C3 7613                 jbe       short 0000`7F55`885F`E9D8h
+    │ 00007F55885FE9C5 C5F828C1             vmovaps   xmm0,xmm1
+    │ 00007F55885FE9C9 E8F23AB2FF           call      0000`7F55`8812`24C0h
+    │ 00007F55885FE9CE C5FA5845F4           vaddss    xmm0,xmm0,[rbp-0Ch]
+    │ 00007F55885FE9D3 C5FA1145F4           vmovss    [rbp-0Ch],xmm0
+    └>00007F55885FE9D8 C5FA1045F4           vmovss    xmm0,[rbp-0Ch]
+      00007F55885FE9DD C5FA5845F8           vaddss    xmm0,xmm0,[rbp-8]
+      00007F55885FE9E2 4883C410             add       rsp,10h
+      00007F55885FE9E6 5D                   pop       rbp
+      00007F55885FE9E7 C3                   ret
+
+
+(Single Square(Single), Default)
+    00007F55885FC9F0 55                   push      rbp
+    00007F55885FC9F1 4883EC10             sub       rsp,10h
+    00007F55885FC9F5 C5F877               vzeroupper
+    00007F55885FC9F8 488D6C2410           lea       rbp,[rsp+10h]
+    00007F55885FC9FD C5FA1145FC           vmovss    [rbp-4],xmm0
+    00007F55885FCA02 C5FA1045FC           vmovss    xmm0,[rbp-4]
+    00007F55885FCA07 C5FA5945FC           vmulss    xmm0,xmm0,[rbp-4]
+    00007F55885FCA0C 4883C410             add       rsp,10h
+    00007F55885FCA10 5D                   pop       rbp
+    00007F55885FCA11 C3                   ret
+
+
+(Single Square(Single), Tier1)
+    00007F55886076C0 C5F877               vzeroupper
+    00007F55886076C3 C5FA59C0             vmulss    xmm0,xmm0,xmm0
+    00007F55886076C7 C3                   ret
+
+| Job               | Method                 | Branches  | Calls  | CodegenSize  | StaticStackAllocations  |
+|:-----------------:|:----------------------:|:---------:|:------:|:------------:|:-----------------------:|
+| (Tier = Default)  | Single Heavy(Single)   | 1         | 3      | 107 B        | 16 B                    |
+| (Tier = Default)  | Single Square(Single)  |  -        |  -     | 34 B         | 16 B                    |
+| (Tier = Tier1)    | Single Heavy(Single)   | 1         | 3      | 88 B         | 16 B                    |
+| (Tier = Tier1)    | Single Square(Single)  |  -        |  -     | 8 B          |  ?                      |
+
