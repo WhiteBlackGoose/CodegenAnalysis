@@ -6,13 +6,17 @@ using System.Text;
 
 namespace CodegenAnalysis;
 
-internal sealed class Lines
+/// <summary>
+/// Type used for "prettification" of lines of output.
+/// Currently used for visualization of jumps.
+/// </summary>
+public sealed class Lines
 {
     private readonly IReadOnlyList<StringBuilder> lines;
     
     private int padding = 0;
     
-    internal Lines(IReadOnlyList<StringBuilder> lines)
+    public Lines(IReadOnlyList<StringBuilder> lines)
         => this.lines = lines;
 
     private void InsertColumn(int width)
@@ -23,7 +27,11 @@ internal sealed class Lines
             line.Insert(0, toInsert);
     }
 
-    internal Lines Add(string prefix, IEnumerable<int> dst)
+    /// <summary>
+    /// Add certain prefix to the lines of the listed numbers,
+    /// starting from 0.
+    /// </summary>
+    public Lines Add(string prefix, IEnumerable<int> dst)
     {
         var toFind = new string(' ', prefix.Length);
         foreach (var id in dst)
@@ -51,6 +59,10 @@ internal sealed class Lines
         }
     }
 
+    /// <summary>
+    /// Given listed directions, draws lines using unicode symbols.
+    /// To make the output ascii-compatible, pass ascii: true.
+    /// </summary>
     public Lines DrawArrows(IEnumerable<(int From, int To)> dst, bool ascii = false)
     {
         var symbolVertical =      ascii ? '|' : '│';

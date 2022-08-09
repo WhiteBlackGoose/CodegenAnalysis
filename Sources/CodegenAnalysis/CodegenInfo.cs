@@ -95,7 +95,11 @@ public partial record class CodegenInfo(IReadOnlyList<byte> Bytes, nuint Instruc
     /// </summary>
     public int Size => Bytes.Count;
 
-    internal unsafe Lines ToLines()
+    /// <summary>
+    /// Turns the instance into <see cref="Lines" /> type.
+    /// Used for prettifying the output
+    /// </summary>
+    public unsafe Lines ToLines()
     {
         // adapted from https://github.com/icedland/iced/blob/master/src/csharp/Intel/README.md#disassemble-decode-and-format-instructions
         var formatter = new NasmFormatter();
