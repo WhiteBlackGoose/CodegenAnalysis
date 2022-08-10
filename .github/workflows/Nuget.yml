@@ -32,8 +32,7 @@ jobs:
           echo "commit hash is $commithash"
           echo "time is $currtime"
           echo "version is $version"
-          name=$version-$currtime-$commithash
-          echo "full version is $name"
+          name=$version
           
           cd Sources
 
