@@ -36,14 +36,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_RepoItems", "_RepoItems", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Benchmarks.Tests.Debug", "Tests\CodegenAnalysis.Benchmarks.Tests.Debug\CodegenAnalysis.Benchmarks.Tests.Debug.csproj", "{6E938F7A-1569-4218-ACDD-A861A9654F8C}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{18D181C2-0DCB-4A6E-A335-230852373EFC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Sample", "Samples\CodegenAnalysis.Sample\CodegenAnalysis.Sample.csproj", "{DF64D162-ADAB-4EDB-87BF-0E2DFEDA29DB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Assertions.Sample", "Samples\CodegenAnalysis.Assertions.Sample\CodegenAnalysis.Assertions.Sample.csproj", "{4A22DA59-895B-41D2-B59C-3D608362FD1A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodegenAnalysis.Benchmarks.Sample", "Samples\CodegenAnalysis.Benchmarks.Sample\CodegenAnalysis.Benchmarks.Sample.csproj", "{A7348EC7-3CF2-41E1-8EEC-1A202D123835}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
