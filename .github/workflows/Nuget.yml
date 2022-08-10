@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - './VERSION'
 
 jobs:
   main:
@@ -23,16 +25,18 @@ jobs:
         
       - name: 'Push new packages to nuget'
         run: |
-          cd Sources
- 
           # versioning
           commithash=$(git rev-parse --short HEAD)
           currtime=$(date +%s)
+          version=$(cat ./VERSION)
           echo "commit hash is $commithash"
           echo "time is $currtime"
-          name=0.1.0-alpha-$currtime-$commithash
-          echo "name is $name"
+          echo "version is $version"
+          name=$version-$currtime-$commithash
+          echo "full version is $name"
           
+          cd Sources
+
           # CodegenAnalysis
           cd CodegenAnalysis
           dotnet restore
