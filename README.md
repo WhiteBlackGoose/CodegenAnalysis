@@ -1,9 +1,5 @@
 # CodegenAnalysis
 
-> ⚠️ The library is in progress (alpha versioning). 
-> 
-> ⚠️ No expected behaviour, no documentation, no backward compatibility.
-
 ![](https://img.shields.io/static/v1?label=Lowest+target&message=netstandard2.0&color=purple&logo=dotnet)
 
 ![](https://img.shields.io/static/v1?label=Windows&message=Supported&color=brightgreen&logo=windows)
