@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - VERSION
+      - 'VERSION/**'
 
 jobs:
   main:
@@ -28,7 +28,7 @@ jobs:
           # versioning
           commithash=$(git rev-parse --short HEAD)
           currtime=$(date +%s)
-          version=$(cat ./VERSION)
+          version=$(cat ./VERSION/VERSION)
           echo "commit hash is $commithash"
           echo "time is $currtime"
           echo "version is $version"
