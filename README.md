@@ -186,5 +186,6 @@ public class A
 }
 ```
 
-[See the output](https://github.com/WhiteBlackGoose/CodegenAnalysis/Samples/CodegenAnalysis.Benchmarks.Sample/CodegenAnalysis.Artifacts).
+[See the output](./Samples/CodegenAnalysis.Benchmarks.Sample/CodegenAnalysis.Artifacts).
+
 
