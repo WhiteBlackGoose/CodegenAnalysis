@@ -14,7 +14,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <PackageReleaseNotes>Forward jumps visualization and bugs fixed.</PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAssertions</RepositoryUrl>
+    <RepositoryUrl>https://github.com/WhiteBlackGoose/CodegenAnalysis</RepositoryUrl>
     <PackageTags>performance, jit, codegen</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   
